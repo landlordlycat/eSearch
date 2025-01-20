@@ -13,10 +13,6 @@ body {
     transition: var(--transition);
 }
 
-#m:hover {
-    box-shadow: inset 0 0 1px 1px #fff;
-}
-
 #main {
     display: flex;
     background-color: var(--bg);
@@ -49,23 +45,17 @@ body {
     border-radius: 4px !important;
 }
 
-#main button,
-#main lock-b {
-    width: 24px;
-    height: 24px;
-    position: relative;
-    background-color: var(--bg);
-    border: none;
-    transition: var(--transition);
-    border-radius: var(--border-radius);
+#main > select:nth-last-of-type(1) {
+    width: auto;
+}
+#main > select {
+    width: var(--b-button);
 }
 
-#main button:hover,
-#main lock-b:hover {
-    background-color: var(--hover-color);
+#main label > input {
+    display: none;
 }
-
-.lock-b-lock {
+#main label:has(input:checked) {
     background-color: var(--hover-color) !important;
 }
 
@@ -78,10 +68,8 @@ body {
 }
 
 #main button > .icon,
-#main lock-b > .icon {
-    width: 20px;
-    left: 2px;
-    top: 2px;
+#main label > .icon {
+    width: 24px;
     user-select: none;
 }
 
@@ -102,6 +90,7 @@ video {
     border-radius: var(--border-radius);
     position: relative;
 }
+
 #s {
     height: 0;
 }
@@ -120,7 +109,7 @@ video {
 
 #jdt::-webkit-slider-thumb {
     -webkit-appearance: none;
-    background-color: var(--color);
+    background-color: var(--font-color);
     border-radius: 2px;
     height: 16px;
     width: 4px;
@@ -167,45 +156,38 @@ input[type="number"]:focus {
 
 select {
     border: none;
-    background-color: #0000;
+    background-color: transparent;
     font-size: 1em;
 }
 
-.b {
-    width: 24px;
-    height: 18px;
-    position: relative;
-    border: none;
-    box-shadow: var(--shadow);
-    border-radius: var(--border-radius);
-    background-color: #0000;
-    transition: var(--transition);
-    font-size: 1rem;
-    padding: 4px;
-    vertical-align: middle;
-}
-.b:hover {
-    background-color: var(--hover-color);
-}
-.b > .icon {
-    width: 18px;
-    height: 18px;
-    left: 3px;
-}
-
-#pro_p {
+.pro_p {
     width: 100%;
-    height: 16px;
+    height: 2rem;
+    line-height: 2rem;
     border-radius: var(--border-radius);
     overflow: hidden;
     background: var(--hover-color);
     margin-top: 4px;
 }
-#pro {
+.pro {
     width: 0%;
     height: 100%;
-    background-color: var(--color);
     transition: var(--transition);
+    border-radius: var(--border-radius);
+    white-space: nowrap;
+}
+.pro_running {
+    background-color: #9999ff;
+}
+.pro_ok {
+    background-color: #99ff99;
+}
+.pro_error {
+    background-color: #ff9999;
+}
+
+.hide_log {
+    display: none;
 }
 
 textarea {
