@@ -3,73 +3,34 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>eSearch - 截屏</title>
+    <title></title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="supported-color-schemes" content="light dark">
     <link rel="stylesheet" type="text/css" href="css/root.css">
     <link rel="stylesheet" type="text/css" href="css/clip.css">
-    <link rel="stylesheet" type="text/css" href="css/edit.css">
-    <link rel="stylesheet" type="text/css" href="css/template2.css">
 </head>
 
 <body>
-    <!-- 侧栏 -->
-    <div id="windows_bar">
-        <button id="windows_bar_close"><img src="./assets/icons/close.svg" class="icon"></button>
-        <div id="screens"></div>
-        <div id="img_history"></div>
-    </div>
-
     <!-- 居中弹窗 -->
-    <div id="center_bar">
+    <div id="center_bar" class="bar">
         <!-- 保存栏 -->
         <div id="save_type">
             <div>保存文件格式为</div>
             <div name="文件格式" id="suffix">
-                <div data-value="png">png</div>
-                <div data-value="jpg">jpg</div>
-                <div data-value="svg" title="可编辑类型">svg</div>
+                <div data-value="png">PNG</div>
+                <div data-value="jpg">JPG</div>
+                <div data-value="webp">WebP</div>
+                <div data-value="svg" title="可编辑类型">SVG</div>
             </div>
         </div>
-        <!-- 编辑命令行 -->
-        <div id="draw_edit">
-            <input type="text" name="" id="" spellcheck="false" placeholder="$0是选中元素，基于Fabric.js API">
-            <button id="draw_edit_run" title="运行命令"><img src="./assets/icons/command.svg" class="icon"></button>
-            <button id="draw_edit_clear" title="清空输出"><img src="./assets/icons/clear.svg" class="icon"></button>
-            <div id="draw_edit_output"></div>
-        </div>
     </div>
 
-    <!-- 工具栏 -->
-    <div id="tool_bar">
-        <div id="tool_close" title="关闭"><img src="./assets/icons/close.svg" class="icon"></div>
-        <div id="tool_ocr" title="OCR(文字识别)">
-            <img src="./assets/icons/ocr.svg" class="icon">
-            <select name="ocr引擎" id="ocr引擎" class="side_select"></select>
-        </div>
-        <div id="tool_search" title="以图搜图">
-            <img src="./assets/icons/search.svg" class="icon">
-            <select name="识图引擎" id="识图引擎" class="side_select">
-                <option value="baidu">百度</option>
-                <option value="yandex">Yandex</option>
-                <option value="google">Google</option>
-            </select>
-
-        </div>
-        <div id="tool_QR" title="QR码"><img src="./assets/icons/scan.svg" class="icon"></div>
-        <div id="tool_draw" title="图像编辑"><img src="./assets/icons/draw.svg" class="icon"></div>
-        <div id="tool_open" title="其他应用打开"><img src="./assets/icons/open.svg" class="icon"></div>
-        <div id="tool_ding" title="放在屏幕上"><img src="./assets/icons/ding.svg" class="icon"></div>
-        <div id="tool_record" title="录屏"><img src="./assets/icons/record.svg" class="icon"></div>
-        <div id="tool_long" title="长截屏"><img src="./assets/icons/long_clip.svg" class="icon"></div>
-        <div id="tool_copy" title="复制"><img src="./assets/icons/copy.svg" class="icon"></div>
-        <div id="tool_save" title="保存"><img src="./assets/icons/save.svg" class="icon"></div>
-    </div>
     <!-- 编辑栏 -->
     <div id="draw_bar">
         <!-- 左侧主按钮 -->
-        <div id="draw_main">
+        <div id="draw_main" class="bar">
+            <div id="draw_select" title="选择与控制"><img src="./assets/icons/rect_select.svg" class="icon"></div>
             <div id="draw_free" title="自由绘画"><img src="./assets/icons/free_draw.svg" class="icon"></div>
             <div id="draw_shapes" title="形状和文字"><img src="./assets/icons/shapes.svg" class="icon"></div>
             <div id="draw_filters" title="滤镜"><img src="./assets/icons/filters.svg" class="icon"></div>
@@ -80,15 +41,19 @@
             <div id="draw_操作" title="操作"><img src="./assets/icons/setting.svg" class="icon"></div>
         </div>
         <!-- 副按钮 -->
-        <div id="draw_side">
+        <div id="draw_side" class="bar">
+            <!-- draw_select -->
+            <div class="draw_items" id="draw_select_i">
+                <div id="draw_select_rect" title="矩形框选"><img src="./assets/icons/rect_select.svg" class="icon"></div>
+                <div id="draw_select_free" title="自由框选"><img src="./assets/icons/free_select.svg" class="icon"></div>
+                <div id="draw_select_draw" title="移动"><img src="./assets/icons/draw_select.svg" class="icon"></div>
+            </div>
             <!-- draw_free -->
             <div class="draw_items" id="draw_free_i">
-                <lock-b id="draw_free_pencil" title="画笔"><img src="./assets/icons/draw.svg" class="icon"></lock-b>
-                <lock-b id="draw_free_eraser" title="橡皮"><img src="./assets/icons/eraser.svg" class="icon"></lock-b>
-                <lock-b id="draw_free_spray" title="喷刷"><img src="./assets/icons/spray.svg" class="icon"></lock-b>
-                <div id="shadow_blur">
-                    <range-b text="px" value="0" min="0" max="20" title="画笔阴影"></range-b>
-                </div>
+                <div id="draw_free_pencil" title="画笔"><img src="./assets/icons/draw.svg" class="icon"></div>
+                <div id="draw_free_eraser" title="橡皮"><img src="./assets/icons/eraser.svg" class="icon"></div>
+                <div id="draw_free_spray" title="喷刷"><img src="./assets/icons/spray.svg" class="icon"></div>
+                <div id="shadow_blur"></div>
             </div>
             <!-- draw_shapes -->
             <div class="draw_items" id="draw_shapes_i">
@@ -100,95 +65,63 @@
                 <div id="draw_shapes_text" title="文字"><img src="./assets/icons/text.svg" class="icon"></div>
                 <div id="draw_shapes_number" title="序号"><img src="./assets/icons/number.svg" class="icon"></div>
                 <div id="draw_shapes_arrow" title="箭头"><img src="./assets/icons/arrow.svg" class="icon"></div>
+                <div id="draw_shapes_mask" title="遮罩"><img src="./assets/icons/mask.svg" class="icon"></div>
             </div>
             <!-- draw_filters -->
             <div class="draw_items" id="draw_filters_i">
-                <div id="draw_filters_select" title="选择区域">
-                    <img src="./assets/icons/add.svg" class="icon">
-                    <lock-b></lock-b>
-                </div>
+                <div id="draw_filters_range"></div>
                 <div id="draw_filters_pixelate" title="马赛克">
-                    <range-b text="px" value="0" max="20"></range-b>
+                    <img src="./assets/icons/pixelate.svg" class="icon">
                 </div>
                 <div id="draw_filters_blur" title="模糊">
-                    <range-b text="%" value="0" max="200"></range-b>
+                    <img src="./assets/icons/blur.svg" class="icon">
                 </div>
                 <div id="draw_filters_brightness" title="亮度">
                     <img src="./assets/icons/brightness.svg" class="icon">
-                    <range-b value="0" min="-1" max="1" step="0.01"></range-b>
                 </div>
                 <div id="draw_filters_contrast" title="对比度">
                     <img src="./assets/icons/contrast.svg" class="icon">
-                    <range-b value="0" min="-1" max="1" step="0.01">
-                    </range-b>
                 </div>
                 <div id="draw_filters_saturation" title="饱和度">
                     <img src="./assets/icons/saturation.svg" class="icon">
-                    <range-b value="0" min="-1" max="1" step="0.01"></range-b>
                 </div>
                 <div id="draw_filters_hue" title="色调">
                     <img src="./assets/icons/hue.svg" class="icon">
-                    <range-b value="0" min="-1" max="1" step="0.01">
-                    </range-b>
                 </div>
-                <div id="draw_filters_gamma" title="伽马">
-                    <range-b value="1" min="0.01" max="2.2" step="0.01" title="红"></range-b>
-                    <range-b value="1" min="0.01" max="2.2" step="0.01" title="绿"></range-b>
-                    <range-b value="1" min="0.01" max="2.2" step="0.01" title="蓝"></range-b>
-                </div>
+                <div id="draw_filters_gamma" title="伽马"></div>
                 <div id="draw_filters_noise" title="噪点">
-                    <range-b value="0" min="0" max="1000"></range-b>
                 </div>
-                <div id="draw_filters_grayscale">
-                    <lock-b title="灰度-平均模式"></lock-b>
-                    <lock-b title="灰度-亮度模式"></lock-b>
-                    <lock-b title="灰度-光度模式"></lock-b>
-                </div>
+                <div id="draw_filters_grayscale"></div>
                 <div id="draw_filters_bs">
                     <div id="draw_filters_invert" title="负片">
-                        <lock-b></lock-b>
                     </div>
                     <div id="draw_filters_sepia" title="棕褐色">
-                        <lock-b></lock-b>
                     </div>
                     <div id="draw_filters_bw" title="黑白">
-                        <lock-b></lock-b>
                     </div>
                     <div id="draw_filters_brownie" title="布朗尼">
-                        <lock-b></lock-b>
                     </div>
                     <div id="draw_filters_vintage" title="老式">
-                        <lock-b></lock-b>
                     </div>
                     <div id="draw_filters_koda" title="柯达彩色胶片">
-                        <lock-b></lock-b>
                     </div>
                     <div id="draw_filters_techni" title="特艺色彩">
-                        <lock-b></lock-b>
                     </div>
                     <div id="draw_filters_polaroid" title="宝丽来">
-                        <lock-b></lock-b>
                     </div>
                 </div>
 
             </div>
             <!-- draw_color&size -->
-            <div class="draw_items">
-                <div id="draw_color_input">
-                    <div contenteditable="true" spellcheck="false" id="draw_color_fill"
-                        style="background-color: #FFFFFF;color: #000000;" title="填充颜色">#FFFFFF</div>
-                    <div contenteditable="true" spellcheck="false" id="draw_color_stroke"
-                        style="background-color: #333333;color: #FFFFFF;" title="边框颜色">#333333</div>
+            <div class="draw_items" id="draw_color_size_i">
+                <div id="draw_color_switch">
+                    <div id="draw_fill_storke_mark"></div>
+                    <img src="./assets/icons/fill_storke.svg" class="icon">
                 </div>
-                <div id="draw_color_alpha">
-                    <range-b text="%" value="100" title="填充不透明度"></range-b>
-                    <range-b text="%" value="100" title="边框不透明度"></range-b>
+                <div id="draw_color_p">
                 </div>
                 <div id="draw_color_color"></div>
-                <div id="draw_stroke_width">
-                    <range-b text="px" min=0 max=100 value="1" title="边框宽度"></range-b>
-                </div>
-                <div id="draw_edit_b" title="命令行高级编辑"><img src="./assets/icons/command.svg" class="icon"></div>
+                <div id="draw_stroke_width"></div>
             </div>
             <!-- draw_position -->
             <div class="draw_items" id="draw_position_i">
@@ -221,59 +154,13 @@
         </div>
     </div>
 
-
-    <!-- 大小栏 -->
-    <div id="clip_wh">
-        <div id="x0y0" contenteditable="true" title="左上角坐标"></div>
-        <div id="x1y1" contenteditable="true" title="右下角坐标"></div>
-        <div id="wh" contenteditable="true" title="大小"></div>
-    </div>
-
     <!-- 鼠标栏 -->
-    <div id="mouse_bar">
+    <div id="mouse_bar" class="bar">
         <div id="point_color"></div>
         <div id="clip_xy"></div>
         <div id="clip_copy">
             <div></div>
         </div>
-    </div>
-
-    <!-- 扫描线 -->
-    <svg id="waiting">
-        <line x1="0" x2="100%" y1="0" y2="0" stroke="#00f" stroke-width="2">
-            <animate attributeName="y1" values="0;100%;0" dur="3s" repeatCount="indefinite" begin="indefinite"
-                calcMode="spline" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"></animate>
-            <animate attributeName="y2" values="0;100%;0" dur="3s" repeatCount="indefinite" begin="indefinite"
-                calcMode="spline" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"></animate>
-        </line>
-    </svg>
-
-    <!-- 加载提示栏 -->
-    <div id="loading"></div>
-
-    <!-- OCR错误提示 -->
-    <div id="ocr_error"></div>
-
-    <!-- 长截屏提示 -->
-    <div id="long_tip">
-        <div id="long_rect">
-            <div id="long_finish" title="停止截屏"></div>
-        </div>
-    </div>
-
-    <!-- 录屏提示 -->
-    <div id="recorder_tip">
-        <div id="recorder_rect">
-            <div id="recorder_bar">
-                <div id="recorder_key"></div>
-                <div id="recorder_mouse">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
-            </div>
-        </div>
-        <div id="mouse_c" class="mouse"></div>
     </div>
 
     <script src="./clip/clip_window.ts" type="module"></script>

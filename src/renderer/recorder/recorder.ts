@@ -1,136 +1,972 @@
 /// <reference types="vite/client" />
-import root_init from "../root/root";
-root_init();
-import "../../../lib/template2.js";
-import pause_svg from "../assets/icons/pause.svg";
-import recume_svg from "../assets/icons/recume.svg";
+// @ts-strict-ignore
+import { initStyle, getImgUrl, setTitle } from "../root/root";
+import {
+    button,
+    check,
+    dynamicSelect,
+    ele,
+    image,
+    input,
+    label,
+    pureStyle,
+    txt,
+} from "dkh-ui";
+import { t, lan } from "../../../lib/translate/translate";
+import { view } from "dkh-ui";
 
-const mic_el = document.getElementById("mic") as HTMLInputElement;
-const camera_el = document.getElementById("camera") as HTMLInputElement;
-const save_el = document.getElementById("save") as HTMLButtonElement;
-const 格式_el = document.getElementById("格式") as HTMLInputElement;
-const 码率_el = document.getElementById("码率") as HTMLInputElement;
-const 帧率_el = document.getElementById("帧率") as HTMLInputElement;
-const 其他参数_el = document.getElementById("其他参数") as HTMLInputElement;
-const t_start_el: time_el = document.getElementById("t_start") as unknown as time_el;
-const t_end_el = document.getElementById("t_end") as unknown as time_el;
-const jdt_el = document.getElementById("jdt") as unknown as time_el;
+// todo 把ui设定移到底部
 
-type time_el = {
-    value: number;
-    min: number;
-    max: number;
-} & HTMLElement;
+import store from "../../../lib/store/renderStore";
+initStyle(store);
 
-const Store = require("electron-store");
-var store = new Store();
+lan(store.get("语言.语言"));
+setTitle(t("录屏"));
 
-var ratio = 1;
+let recorder: MediaRecorder;
 
-var /**@type {MediaRecorder} */ recorder;
+/** 临时保存的原始视频位置 */
+let tmpPath: string;
+/** 转换 */
+let output: string;
 
-var tmp_path;
+let sS = false;
+let stop = false;
 
-var start_stop = document.getElementById("start_stop");
-var s_s = false;
-start_stop.onclick = () => {
-    if (s_s) {
-        start_stop.querySelector("div").className = "stop";
-        pause_recume.querySelector("img").src = pause_svg;
-        document.getElementById("time").innerText = "0:00";
-        recorder.start();
-        p_time();
-        setInterval(get_time, 500);
-        s_s = false;
-        ipcRenderer.send("record", "start", time_l[0]);
-    } else {
-        recorder.stop();
-        p_time();
-    }
-};
+const clipTime = Number(store.get("录屏.转换.分段")) * 1000;
 
-var pause_recume = document.getElementById("pause_recume");
-pause_recume.onclick = () => {
-    if (recorder.state == "inactive") return;
-    if (recorder.state == "recording") {
-        pause_recume.querySelector("img").src = recume_svg;
-        recorder.pause();
-        p_time();
-    } else if (recorder.state == "paused") {
-        pause_recume.querySelector("img").src = recume_svg;
-        recorder.resume();
-        p_time();
-    }
-};
+const nameT: { s: number; e: number }[] = [{ s: 0, e: Number.NaN }];
 
-var time_l = [];
-function p_time() {
-    let t = new Date().getTime();
-    time_l.push(t);
+const timeL = [];
+function pTime() {
+    const t = new Date().getTime();
+    timeL.push(t);
     let d = 0;
-    for (let i = 0; i < time_l.length; i += 2) {
-        if (time_l[i + 1]) d += time_l[i + 1] - time_l[i];
+    for (let i = 0; i < timeL.length; i += 2) {
+        if (timeL[i + 1]) d += timeL[i + 1] - timeL[i];
     }
-    ipcRenderer.send("record", "pause_time", { t, dt: d, pause: time_l.length % 2 == 0 });
+    ipcRenderer.send("record", "pause_time", {
+        t,
+        dt: d,
+        pause: timeL.length % 2 === 0,
+    });
 }
-function get_time() {
-    if (recorder.state == "recording") {
+function getT() {
+    let t = 0;
+    for (let i = 1; i < timeL.length - 1; i += 2) {
+        t += timeL[i] - timeL[i - 1];
+    }
+    if (timeL.length % 2 === 0) {
+        t += new Date().getTime() - timeL.at(-2);
+    } else {
+        t += new Date().getTime() - timeL.at(-1);
+    }
+    return t;
+}
+function setTime(t: string) {
+    ipcRenderer.send("record", "time", t);
+}
+function getTime() {
+    if (recorder.state === "recording") {
         let t = 0;
-        for (let i = 1; i < time_l.length - 1; i += 2) {
-            t += time_l[i] - time_l[i - 1];
+        for (let i = 1; i < timeL.length - 1; i += 2) {
+            t += timeL[i] - timeL[i - 1];
         }
-        t += new Date().getTime() - time_l[time_l.length - 1];
-        let s = Math.trunc(t / 1000);
-        let m = Math.trunc(s / 60);
-        let h = Math.trunc(m / 60);
-        document.getElementById("time").innerText = `${h == 0 ? "" : `${h}:`}${m - 60 * h}:${String(
-            s - 60 * m
-        ).padStart(2, "0")}`;
+        t += new Date().getTime() - timeL.at(-1);
+        const s = Math.trunc(t / 1000);
+        const m = Math.trunc(s / 60);
+        const h = Math.trunc(m / 60);
+        setTime(
+            `${h === 0 ? "" : `${h}:`}${m - 60 * h}:${String(
+                s - 60 * m,
+            ).padStart(2, "0")}`,
+        );
     }
 }
 
-var /**@type {MediaStream} */ audio_stream, /**@type {MediaStream} */ stream;
+type mimeType =
+    | "mp4"
+    | "webm"
+    | "gif"
+    | "mkv"
+    | "mov"
+    | "avi"
+    | "ts"
+    | "mpeg"
+    | "flv";
+let type = store.get("录屏.转换.格式") as mimeType;
 
-var audio = false,
-    camera = false;
+const audioStreamS = new Map<string, MediaStream>();
+let stream: MediaStream;
 
-var rect;
+let rect: [number, number, number, number];
 
 const { ipcRenderer } = require("electron") as typeof import("electron");
-ipcRenderer.on("record", async (event, t, sourceId, r, screen_w, screen_h, screen_ratio) => {
-    switch (t) {
-        case "init":
-            rect = r;
-            ratio = screen_ratio;
-            s_s = true;
-            let devices = await navigator.mediaDevices.enumerateDevices();
-            for (let i of devices) {
-                if (i.kind == "audioinput") audio = true;
-                if (i.kind == "videoinput") camera = true;
-            }
-            if (audio) {
-                audio_stream = await navigator.mediaDevices.getUserMedia({
-                    audio: true,
-                    video: false,
+// biome-ignore format:
+const spawn = require("node:child_process").spawn as typeof import("child_process").spawn;
+const fs = require("node:fs") as typeof import("fs");
+const os = require("node:os") as typeof import("os");
+const path = require("node:path") as typeof import("path");
+import type { MessageBoxSyncOptions } from "electron";
+let pathToFfmpeg = "ffmpeg";
+if (process.platform === "win32" || process.platform === "darwin") {
+    const p = path.join(__dirname, "..", "..", "lib", "ffmpeg");
+    const n = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+    pathToFfmpeg = path.join(p, n);
+}
+const start = spawn(pathToFfmpeg, ["-version"]);
+start.on("error", () => {
+    const m =
+        process.platform === "linux"
+            ? "请安装FFmpeg，并确保软件可使用ffmpeg命令"
+            : "请重新安装软件，或进行反馈";
+    ipcRenderer.send("dialog", {
+        message: `FFmpeg用于处理视频，但现在软件无法使用它\n${m}`,
+        buttons: ["取消"],
+    } as MessageBoxSyncOptions);
+});
+console.log(pathToFfmpeg);
+
+/** 自动分段 */
+function c() {
+    if (clipTime === 0) return;
+    setTimeout(() => {
+        if (!stop) {
+            recorder.stop();
+            c();
+        }
+    }, clipTime);
+}
+
+function cameraStreamF(b: boolean) {
+    if (b) ipcRenderer.send("record", "camera", 0);
+    else ipcRenderer.send("record", "camera", 1);
+}
+
+function resize() {
+    const p = {
+        h: videoPEl.el.offsetHeight,
+        w: videoPEl.el.offsetWidth,
+    };
+    const c = {
+        h: vpEl.el.offsetHeight,
+        w: vpEl.el.offsetWidth,
+    };
+    const k0 = p.h / p.w;
+    const k1 = c.h / c.w;
+    if (k0 >= k1) {
+        console.log(p.w, c.w);
+        // @ts-ignore
+        vpEl.el.style.zoom = p.w / c.w;
+    } else {
+        // @ts-ignore
+        vpEl.el.style.zoom = p.h / c.h;
+    }
+}
+
+let editting = false;
+
+function setVideo(n: number) {
+    videoEl.src = `${tmpPath}/${n}`;
+}
+
+/** 获取绝对时间 */
+function getPlayT() {
+    let t = 0;
+    for (let i = 0; i < playName; i++) {
+        t += nameT[i].e - nameT[i].s;
+    }
+    t += videoEl.currentTime * 1000;
+    return t;
+}
+
+/** 通过绝对时间设定视频和其相对时间 */
+function setPlayT(time: number) {
+    const x = getTimeInV(time);
+    setVideo(x.v);
+    playName = x.v;
+    videoEl.currentTime = x.time / 1000;
+}
+
+/** 获取绝对时间对应的视频和相对时间 */
+function getTimeInV(time: number) {
+    for (let i = 0; i < nameT.length; i++) {
+        if (nameT[i].s <= time && time < (nameT?.[i + 1]?.s || nameT[i].e)) {
+            return { v: i, time: time - nameT[i].s };
+        }
+    }
+    return { v: 0, time: 0 };
+}
+
+function showControl() {
+    editting = true;
+    playEl.sv(true);
+    if (cameraEl.gv) cameraStreamF(false);
+    sEl.class("s_show");
+    settingEl.style({ display: "none" });
+    mEl.style({ backgroundColor: "var(--bg)" });
+    videoPEl.style({ transform: "" });
+    segEl.remove();
+    setVideo(0);
+    videoEl.style.left = `${-rect[0]}px`;
+    videoEl.style.top = `${-rect[1]}px`;
+    vpEl.style({
+        width: `${rect[2]}px`,
+        minWidth: `${rect[2]}px`,
+        height: `${rect[3]}px`,
+        minHeight: `${rect[3]}px`,
+    });
+    clipV();
+    saveEl.el.disabled = false;
+    if (store.get("录屏.转换.自动转换")) {
+        save();
+    } else {
+        ipcRenderer.send("window", "max");
+    }
+    setTimeout(() => {
+        resize();
+        mEl.style({ transition: "none" });
+    }, 400);
+}
+
+let playName = 0;
+
+function clipV() {
+    tStartEl.sv(0);
+    setEndEl.el.click();
+
+    tTEl.sv(tFormat(tEndEl.gv - tStartEl.gv));
+    tNtEl.sv(tFormat(0));
+}
+
+/**
+ *
+ * @param x 输入秒
+ */
+function tFormat(x: number) {
+    const t = x;
+    const s = Math.trunc(t / 1000);
+    const m = Math.trunc(s / 60);
+    const h = Math.trunc(m / 60);
+    return `${h === 0 ? "" : `${h}:`}${m - 60 * h}:${String(s - 60 * m).padStart(2, "0")}.${String(
+        t % 1000,
+    ).slice(0, 1)}`;
+}
+
+function videoPlay() {
+    setPlayT(tStartEl.gv);
+    videoEl.play();
+}
+
+const clipPath: string[] = [];
+let isClipRun = false;
+/** 获取要切割的视频和位置 */
+async function clip() {
+    if (isClipRun) return;
+    isClipRun = true;
+    const start = tStartEl.gv;
+    const end = tEndEl.gv;
+    const startV = getTimeInV(start);
+    const endV = getTimeInV(end);
+    const output1 = path.join(tmpPath, "output1");
+    try {
+        fs.rmSync(output1, { recursive: true });
+    } catch (error) {}
+    fs.mkdirSync(output1);
+    function toArg(
+        v: number,
+        t: number,
+        a: "start" | "end" | "both",
+        t2?: number,
+    ) {
+        const args = [];
+        args.push("-i", path.join(output, `${v}.${type}`));
+        if (a === "start") {
+            args.push("-ss", t / 1000);
+        } else if (a === "end") {
+            args.push("-to", t / 1000);
+        } else {
+            args.push("-ss", t / 1000, "-to", t2 / 1000);
+        }
+        args.push(path.join(output1, `${v}.${type}`));
+        return args;
+    }
+    if (startV.v + 1 < endV.v) {
+        for (let i = startV.v + 1; i < endV.v; i++) {
+            fs.copyFileSync(
+                path.join(output, `${i}.${type}`),
+                path.join(output1, `${i}.${type}`),
+            );
+        }
+    }
+    for (let i = startV.v; i <= endV.v; i++) {
+        clipPath.push(
+            path
+                .join(output1, `${i}.${type}`)
+                .replaceAll(path.sep, path.posix.sep),
+        );
+    }
+    if (startV.v === endV.v) {
+        await runFfmpeg(
+            "clip",
+            0,
+            toArg(startV.v, startV.time, "both", endV.time),
+        );
+    } else {
+        await Promise.all([
+            runFfmpeg("clip", 0, toArg(startV.v, startV.time, "start")),
+            runFfmpeg("clip", 1, toArg(endV.v, endV.time, "end")),
+        ]);
+    }
+}
+
+function joinAndSave(filepath: string) {
+    if (clipPath.length === 1) {
+        fs.cpSync(clipPath[0], filepath);
+        ffprocess.join[0] = { args: [], finish: "ok", logs: [], testCom: "" };
+        updataPrEl(ffprocess);
+        return;
+    }
+    const args = [];
+
+    // 针对不同格式的合并（用switch还要加上作用域的话缩进就太多了）
+    if (type === "gif") {
+        for (const i of clipPath) {
+            args.push("-i", i);
+        }
+        args.push("-filter_complex");
+        let t = "";
+        for (const i in clipPath) {
+            t += `[${i}:v:0]`;
+        }
+        t += `concat=n=${clipPath.length}:v=1[outv]`;
+        args.push(`"${t}"`, "-map", '"[outv]"');
+    } else if (
+        type === "webm" ||
+        type === "mp4" ||
+        type === "ts" ||
+        type === "mkv" ||
+        type === "mov" ||
+        type === "flv" ||
+        type === "mpeg"
+    ) {
+        let t = "";
+        for (const i of clipPath) {
+            t += `file ${i}\n`;
+        }
+        const textPath = path.join(tmpPath, "output1", "x.txt");
+        fs.writeFileSync(textPath, t);
+        args.push("-f", "concat", "-safe", "0", "-i", textPath, "-c", "copy");
+    } else if (type === "avi") {
+    }
+    args.push(filepath);
+
+    runFfmpeg("join", 0, args);
+}
+
+async function save() {
+    store.set("录屏.转换.格式", 格式El.el.gv);
+    ipcRenderer.send("record", "ff", { 格式: type });
+}
+
+let savePath = "";
+let isTsOk = false;
+
+const prText = {
+    wait: {
+        ts: "等待转换",
+        clip: "等待裁剪",
+        join: "等待合并",
+    },
+    running: {
+        ts: "正在转换",
+        clip: "正在裁剪",
+        join: "正在合并",
+    },
+    ok: {
+        ts: "转换完成",
+        clip: "裁剪完成",
+        join: "合并完成",
+    },
+    error: {
+        ts: "转换失败",
+        clip: "裁剪失败",
+        join: "合并失败",
+    },
+};
+
+for (const i in prText) {
+    for (const j in prText[i]) {
+        prText[i][j] = t(prText[i][j]);
+    }
+}
+
+function setFFState(type: keyof typeof prEl, n: number, state: prst) {
+    ffprocess[type][n].finish = state;
+    if (
+        type === "ts" &&
+        Object.values(ffprocess[type]).every((i) => i.finish === "ok")
+    ) {
+        if (savePath) {
+            clip()
+                .then(() => joinAndSave(savePath))
+                .catch(() => {
+                    isClipRun = false;
                 });
-            } else {
-                mic_el.style.display = "none";
-            }
-            if (!camera) document.getElementById("camera").style.display = "none";
-            navigator.mediaDevices.ondevicechange = () => {
-                navigator.mediaDevices.enumerateDevices().then((d) => {
-                    let video = false;
-                    for (let i of d) {
-                        if (i.kind == "videoinput") video = true;
-                    }
-                    if (video) {
-                        document.getElementById("camera").style.display = "";
-                    } else {
-                        document.getElementById("camera").style.display = "none";
-                        camera_stream_f(false);
-                    }
-                });
+        }
+    }
+}
+
+function updataPrEl(pr: typeof ffprocess) {
+    for (const i in pr) {
+        const key = i as "ts" | "clip" | "join";
+        const prILen = Object.keys(pr[key]).length;
+        if (prILen === 0) {
+            prEl[key].el.innerText = `${prText.wait[key]}`;
+        } else {
+            const stI: { [key in prst]: number } = {
+                ok: 0,
+                err: 0,
+                running: 0,
             };
+            for (const j in pr[key]) {
+                stI[pr[key][j].finish]++;
+            }
+            if (stI.err > 0) {
+                prEl[key].el.innerText =
+                    `${prText.error[key]} ${t("点击重试")}`;
+                prEl[key].class("pro_error");
+                prEl[key].el.onclick = () => {
+                    for (const i in pr[key]) {
+                        if (pr[key][i].finish === "err") {
+                            runFfmpeg(key, Number(i), pr[key][i].args);
+                        }
+                    }
+                    logText.el.value += "\n\n重试\n\n";
+                };
+                logP.el.classList.remove("hide_log");
+                for (const i in pr[key]) {
+                    if (pr[key][i].finish === "err") {
+                        logText.el.value += `\n命令：\n${pr[key][i].testCom}\n\n输出：\n${pr[key][i].logs.map((i) => i.text).join("\n")}`;
+                    }
+                }
+                logText.el.scrollTop = logText.el.scrollHeight;
+            } else if (stI.ok === prILen) {
+                prEl[key].el.innerText = `${prText.ok[key]}`;
+                prEl[key].el.style.width = "100%";
+                prEl[key].class("pro_ok");
+                if (key === "ts") {
+                    isTsOk = true;
+                    if (!savePath) {
+                        prEl[key].el.innerText += ` ${t("等待保存")}`;
+                    }
+                }
+            } else {
+                prEl[key].el.innerText =
+                    `${prText.running[key]} ${stI.running}/${prILen}`;
+                prEl[key].el.style.width = `${(stI.running / prILen) * 100}%`;
+                prEl[key].class("pro_running");
+            }
+        }
+    }
+}
+
+type prst = "ok" | "err" | "running";
+
+type p = {
+    [k: number]: {
+        args: string[];
+        testCom: string;
+        logs: { text: string }[];
+        finish: "ok" | "err" | "running";
+    };
+};
+const ffprocess: {
+    [key in "ts" | "clip" | "join"]: p;
+} = {
+    ts: {},
+    clip: {},
+    join: {},
+};
+
+function runFfmpeg(type: "ts" | "clip" | "join", n: number, args: string[]) {
+    const ffmpeg = spawn(pathToFfmpeg, args);
+    ffprocess[type][n] = {
+        args,
+        testCom: `ffmpeg ${args.join(" ")}`,
+        finish: "running",
+        logs: [],
+    };
+    updataPrEl(ffprocess);
+    return new Promise((re, rj) => {
+        ffmpeg.on("close", (code) => {
+            if (code === 0) {
+                setFFState(type, n, "ok");
+                updataPrEl(ffprocess);
+                console.log(ffprocess);
+                re(true);
+            } else {
+                setFFState(type, n, "err");
+                updataPrEl(ffprocess);
+                console.log(ffprocess);
+                rj(false);
+            }
+        });
+        ffmpeg.stdout.on("data", (data: Uint8Array) => {
+            ffprocess[type][n].logs.push({ text: data.toString() });
+            console.log(data.toString());
+        });
+        ffmpeg.stderr.on("data", (data: Uint8Array) => {
+            ffprocess[type][n].logs.push({ text: data.toString() });
+            console.log(data.toString());
+        });
+    });
+}
+
+// @auto-path:../assets/icons/$.svg
+function iconEl(src: string) {
+    return image(getImgUrl(`${src}.svg`), "icon").class("icon");
+}
+// @auto-path:../assets/icons/$.svg
+function iconBEl(src: string) {
+    return button().add(image(getImgUrl(`${src}.svg`), "icon").class("icon"));
+}
+
+pureStyle();
+
+class time_i extends HTMLElement {
+    _value: number;
+    _min: number;
+    _max: number;
+    input = document.createElement("input");
+
+    connectedCallback() {
+        this._value = Number(this.getAttribute("value")) || 0;
+        this._min = Number(this.getAttribute("min")) || 0;
+        this._max = Number(this.getAttribute("max")) || 0;
+        const i = document.createElement("span");
+        this.appendChild(i);
+        i.innerHTML = `<span contenteditable="true"></span>:<span contenteditable="true"></span>:<span contenteditable="true"></span>.<span contenteditable="true"></span>`;
+        const 加减 = this.input;
+        加减.type = "number";
+        this.appendChild(加减);
+        加减.max = this._max.toString();
+        加减.min = this._min.toString();
+        加减.value = this._value.toString();
+        const [h, m, s, ss] = i.querySelectorAll("span");
+
+        h.onfocus = () => {
+            加减.step = "3600000";
+        };
+        m.onfocus = () => {
+            加减.step = "60000";
+        };
+        s.onfocus = () => {
+            加减.step = "1000";
+        };
+        ss.onfocus = () => {
+            加减.step = "1";
+        };
+
+        h.oninput = () => {
+            r(h, "0", Number.POSITIVE_INFINITY);
+        };
+        m.oninput = () => {
+            r(m, "00", 60);
+        };
+        s.oninput = () => {
+            r(s, "00", 60);
+        };
+        ss.oninput = () => {
+            r(ss, "000", 1000);
+        };
+        /**
+         *
+         * @param {HTMLSpanElement} el
+         * @param {string} dv
+         * @param {number} max
+         */
+        const r = (el: HTMLSpanElement, dv: string, max: number) => {
+            if (Number.isNaN(Number(el.innerText))) {
+                el.innerText = "";
+            } else {
+                let tf = false;
+                switch (el) {
+                    case ss:
+                        tf = 0 <= this.n(ss) && this.n(ss) < max;
+                        break;
+                    case s:
+                        tf = 0 <= this.n(s) && this.n(s) < max;
+                        break;
+                    case m:
+                        tf = 0 <= this.n(m) && this.n(m) < max;
+                        break;
+                    case h:
+                        tf = 0 <= this.n(h) && this.n(h) < max;
+                        break;
+                }
+                if (tf) {
+                    if (
+                        this.sum_value() > this._max ||
+                        this.sum_value() < this._min
+                    ) {
+                        el.innerText = dv;
+                        加减.value = this.sum_value().toString();
+                    } else {
+                        this._value = this.sum_value();
+                        加减.value = this.sum_value().toString();
+                    }
+                } else {
+                    el.innerText = dv;
+                    加减.value = this.sum_value().toString();
+                }
+            }
+        };
+
+        加减.oninput = () => {
+            this.set_value(Number(加减.value));
+            this.dispatchEvent(new Event("input"));
+        };
+    }
+
+    /** @param {HTMLSpanElement} el*/
+    n(el) {
+        return Number(el.innerText);
+    }
+
+    set_value(v: number) {
+        this._value = v;
+        const tn = v % 1000;
+        const sn = Math.trunc(v / 1000);
+        const mn = Math.trunc(sn / 60);
+        const hn = Math.trunc(mn / 60);
+        const [h, m, s, ss] =
+            this.querySelector("span").querySelectorAll("span");
+        h.innerText = String(hn);
+        m.innerText = String(mn - 60 * hn);
+        s.innerText = String(sn - 60 * mn).padStart(2, "0");
+        ss.innerText = String(tn).padStart(3, "0");
+    }
+
+    sum_value() {
+        const [h, m, s, ss] =
+            this.querySelector("span").querySelectorAll("span");
+        const [hn, mn, sn, ssn] = [h, m, s, ss].map((v) => this.n(v));
+        const v = hn * 3600000 + mn * 60000 + sn * 1000 + ssn;
+        return v;
+    }
+
+    get value() {
+        return this._value;
+    }
+    set value(v: number) {
+        this.set_value(v);
+        this.setAttribute("value", String(v));
+        this.input.value = v.toString();
+    }
+    get max() {
+        return this._max;
+    }
+    set max(x) {
+        const v = Number(x) || 0;
+        this._max = v;
+        this.setAttribute("max", String(v));
+        this.input.max = v.toString();
+    }
+    get min() {
+        return this._min;
+    }
+    set min(x) {
+        const v = Number(x) || 0;
+        this._max = v;
+        this.setAttribute("min", String(v));
+        this.input.min = v.toString();
+    }
+    get gv() {
+        return this.value;
+    }
+    sv(v: number) {
+        this.set_value(v);
+    }
+    set svc(v: number) {
+        this.set_value(v);
+    }
+}
+
+window.customElements.define("time-i", time_i);
+
+const mEl = view().attr({ id: "m" }).addInto();
+const startStop = button()
+    .add(iconEl("start_record").style({ filter: "none" }))
+    .attr({ id: "start_stop" })
+    .style({ width: "80px", height: "80px" })
+    .on("click", () => {
+        if (sS) {
+            recorder.start();
+            格式El.el.style({ display: "none" });
+            type = 格式El.el.gv as mimeType;
+            pTime();
+            setInterval(getTime, 500);
+            sS = false;
+            ipcRenderer.send("record", "start", tmpPath, type);
+
+            c();
+        } else {
+            stop = true;
+            recorder.stop();
+            for (const i of stream.getTracks()) {
+                i.stop();
+            }
+            for (const s of audioStreamS.values())
+                for (const t of s.getTracks()) {
+                    t.stop();
+                }
+
+            pTime();
+        }
+    });
+
+const cameraEl = check("camera")
+    .attr({ id: "camera" })
+    .on("click", () => {
+        try {
+            cameraStreamF(cameraEl.gv);
+            if (store.get("录屏.摄像头.记住开启状态"))
+                store.set("录屏.摄像头.默认开启", cameraEl.gv);
+        } catch (e) {
+            console.error(e);
+        }
+    });
+const micList = view("y");
+
+const 格式El = dynamicSelect();
+const types: mimeType[] = [
+    "mp4",
+    "webm",
+    "gif",
+    "mkv",
+    "mov",
+    "ts",
+    "mpeg",
+    "flv",
+];
+格式El.setList(types.map((i) => ({ value: i, text: i })));
+格式El.el.el.value = type;
+
+const settingEl = view("y")
+    .style({
+        position: "fixed",
+        left: 0,
+        top: 0,
+        width: "100vw",
+        height: "100vh",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "var(--o-padding)",
+    })
+    .add([
+        startStop,
+        view("y")
+            .add([
+                view("y").add([t("格式"), 格式El.el]),
+                view("y").add([t("选择输入音频"), micList]),
+                view("y").add([t("摄像头"), label([cameraEl, t("开启")])]),
+            ])
+            .style({
+                gap: "var(--o-padding)",
+            }),
+    ])
+    .addInto();
+
+const videoPEl = view().attr({ id: "video" }).addInto(mEl);
+const vpEl = view().attr({ id: "v_p" }).addInto(videoPEl);
+const videoEl = ele("video").style({ maxWidth: "none" }).addInto(vpEl).el;
+const segEl = view().attr({ id: "seg" }).addInto(vpEl);
+
+videoEl.onpause = () => {
+    playEl.sv(true);
+};
+videoEl.onplay = () => {
+    playEl.sv(false);
+};
+
+videoEl.ontimeupdate = () => {
+    if (!editting) return;
+    tNtEl.sv(tFormat(getPlayT() - tStartEl.gv));
+    if (getPlayT() > tEndEl.gv) {
+        videoEl.pause();
+        tNtEl.sv(tTEl.gv);
+    }
+    jdtEl.sv(getPlayT());
+};
+
+videoEl.onended = () => {
+    if (playName < nameT.length - 1) {
+        playName++;
+        setVideo(playName);
+        videoEl.play();
+    } else {
+        tNtEl.sv(tTEl.gv);
+        jdtEl.svc = Number(jdtEl.el.max);
+    }
+};
+
+const sEl = view().attr({ id: "s" }).class("small-size").addInto(mEl);
+
+const jdtEl = input("range")
+    .attr({ id: "jdt" })
+    .bindGet((el) => Number(el.value))
+    .bindSet((v: number, el) => {
+        el.value = String(v);
+    })
+    .on("input", () => {
+        setPlayT(jdtEl.gv);
+    });
+
+const tStartEl = document.createElement("time-i") as time_i;
+tStartEl.id = "t_start";
+const tNtEl = txt()
+    .attr({ id: "t_nt" })
+    .bindSet((v: string, el) => {
+        el.innerText = v;
+    });
+const tTEl = txt()
+    .attr({ id: "t_t" })
+    .bindSet((v: string, el) => {
+        el.innerText = v;
+        el.setAttribute("t", v);
+    })
+    .bindGet((el) => {
+        return el.getAttribute("t");
+    });
+const tEndEl = document.createElement("time-i") as time_i;
+tEndEl.id = "t_end";
+
+tStartEl.oninput = () => {
+    const t = tStartEl.gv / 1000;
+    videoEl.currentTime = tEndEl.min = t;
+    jdtEl.el.min = String(t);
+    tTEl.sv(tFormat(tEndEl.gv - tStartEl.gv));
+};
+tEndEl.oninput = () => {
+    const t = tEndEl.gv / 1000;
+    videoEl.currentTime = tStartEl.max = t;
+    jdtEl.el.max = String(t);
+    tTEl.sv(tFormat(tEndEl.gv - tStartEl.gv));
+};
+
+const playEl = check("play", [iconEl("recume"), iconEl("pause")])
+    .attr({ id: "v_play" })
+    .style({
+        display: "inline-block",
+    })
+    .on("change", () => {
+        if (playEl.gv) {
+            videoEl.pause();
+        } else {
+            videoPlay();
+        }
+    });
+const setEndEl = iconBEl("right")
+    .attr({ id: "b_t_end" })
+    .on("click", () => {
+        const max = timeL.at(-1) - timeL[0];
+        jdtEl.attr({ max: String(max) });
+        tEndEl.svc = tStartEl.max = tEndEl.max = timeL.at(-1) - timeL[0];
+    });
+
+const saveEl = iconBEl("save")
+    .attr({ id: "save", disabled: true })
+    .on("click", () => save());
+
+const proEl = (id: string) =>
+    view()
+        .class("pro_p")
+        .add(
+            view()
+                .class("pro")
+                .attr({ id: `pr_${id}` }),
+        );
+
+const prTs = proEl("ts");
+const prClip = proEl("clip");
+const prJoin = proEl("join");
+
+const prEl = {
+    ts: prTs,
+    clip: prClip,
+    join: prJoin,
+};
+
+updataPrEl(ffprocess);
+
+const logP = ele("details").attr({ id: "log_p" }).class("hide_log");
+const logText = ele("textarea").attr({ id: "log", cols: 30, rows: 10 });
+logP.add([ele("summary").add("FFmpeg 错误日志"), logText]);
+
+sEl.add([
+    jdtEl,
+    ele("br"),
+    "开始时间：",
+    tStartEl,
+    tNtEl,
+    " / ",
+    tTEl,
+    playEl,
+    "结束时间：",
+    tEndEl,
+    setEndEl,
+    saveEl,
+    prTs,
+    prClip,
+    prJoin,
+    logP,
+]);
+
+const devices = await navigator.mediaDevices.enumerateDevices();
+const audioL = devices.filter((i) => i.kind === "audioinput");
+for (const i of audioL) {
+    const el = label([check(""), i.label || i.deviceId]);
+    el.on("input", async () => {
+        if (el.gv) {
+            const audioStream = await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId: i.deviceId },
+                video: false,
+            });
+            audioStreamS.set(i.deviceId, audioStream);
+        } else {
+            const s = audioStreamS.get(i.deviceId);
+            if (s) {
+                for (const t of s.getTracks()) {
+                    t.stop();
+                }
+            }
+            audioStreamS.delete(i.deviceId);
+        }
+    });
+    micList.add(el);
+}
+// todo store.set("录屏.音频.设备", selectEl.gv);
+if (audioL.length === 0) {
+    micList.add("无音频输入设备");
+}
+
+if (store.get("录屏.摄像头.默认开启")) {
+    try {
+        cameraStreamF(true);
+        cameraEl.sv(true);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+document.body.onresize = resize;
+
+ipcRenderer.on("record", async (_event, t, sourceId, r, screen_w, screen_h) => {
+    switch (t) {
+        case "init": {
+            rect = r;
+            sS = true;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     audio: false,
@@ -148,47 +984,78 @@ ipcRenderer.on("record", async (event, t, sourceId, r, screen_w, screen_h, scree
                 console.error(e);
             }
             if (!stream) return;
-            if (audio_stream) {
-                for (let i of audio_stream.getAudioTracks()) stream.addTrack(i);
-                mic_stream(store.get("录屏.音频.默认开启"));
+            for (const a of audioStreamS.values()) {
+                for (const i of a.getAudioTracks()) stream.addTrack(i);
             }
-            var chunks = [];
+            let chunks = [];
             recorder = new MediaRecorder(stream, {
                 videoBitsPerSecond: store.get("录屏.视频比特率") * 10 ** 6,
                 mimeType: "video/webm",
             });
-            document.getElementById("record_b").style.opacity = "1";
-            document.getElementById("record_b").style.pointerEvents = "auto";
-            recorder.ondataavailable = function (e) {
+            recorder.ondataavailable = (e) => {
                 chunks.push(e.data);
             };
-            recorder.onstop = () => {
-                ipcRenderer.send("record", "stop");
-                let b = new Blob(chunks, { type: "video/webm" });
-                let reader = new FileReader();
+
+            const fileName = String(new Date().getTime());
+            tmpPath = path.join(os.tmpdir(), "eSearch/", fileName);
+            output = path.join(tmpPath, "output");
+            fs.mkdirSync(tmpPath);
+            fs.mkdirSync(output);
+            let clipName = 0;
+            function save(f: () => void) {
+                const b = new Blob(chunks, { type: "video/webm" });
+                console.log(chunks, b);
+                const reader = new FileReader();
                 reader.readAsArrayBuffer(b);
-                reader.onloadend = (e) => {
-                    const fs = require("fs") as typeof import("fs");
-                    const os = require("os") as typeof import("os");
-                    const path = require("path") as typeof import("path");
-                    let file_name = String(new Date().getTime());
-                    tmp_path = path.join(os.tmpdir(), "eSearch/", file_name);
-                    fs.writeFile(tmp_path, Buffer.from(reader.result as string), (err) => {
-                        if (!err) {
-                            show_control();
-                        }
-                    });
+                reader.onloadend = (_e) => {
+                    const baseName = String(clipName);
+                    const baseName2 = `${baseName}.${type}`;
+                    const p = path.join(tmpPath, baseName);
+                    const crop =
+                        type === "gif" && store.get("录屏.转换.高质量gif")
+                            ? `[in]crop=${rect[2]}:${rect[3]}:${rect[0]}:${rect[1]},split[split1][split2];[split1]palettegen=stats_mode=single[pal];[split2][pal]paletteuse=new=1`
+                            : `crop=${rect[2]}:${rect[3]}:${rect[0]}:${rect[1]}`;
+                    const args = [
+                        "-i",
+                        p,
+                        "-vf",
+                        crop,
+                        path.join(output, baseName2),
+                    ];
+                    fs.writeFile(
+                        p,
+                        Buffer.from(reader.result as string),
+                        (_err) => {
+                            runFfmpeg("ts", clipName, args);
+                            chunks = [];
+                            if (f) f();
+                            clipName++;
+                        },
+                    );
                 };
+            }
+
+            recorder.onstop = () => {
+                nameT.at(-1).e = getT();
+                if (stop) {
+                    ipcRenderer.send("record", "stop");
+                    save(showControl);
+                    console.log(nameT);
+                } else {
+                    save(null);
+                    recorder.start();
+                    nameT.push({ s: getT(), e: Number.NaN });
+                }
             };
 
-            if (store.get("录屏.自动录制")) {
-                let t = store.get("录屏.自动录制");
+            if (store.get("录屏.自动录制") === true) {
+                let t = store.get("录屏.自动录制延时");
                 function d() {
-                    if (recorder.state != "inactive") return;
-                    document.getElementById("time").innerText = t;
+                    if (recorder.state !== "inactive") return;
+                    setTime(String(t));
                     setTimeout(() => {
-                        if (t == 0) {
-                            start_stop.click();
+                        if (t === 0) {
+                            startStop.el.click();
                         } else {
                             t--;
                             d();
@@ -198,263 +1065,45 @@ ipcRenderer.on("record", async (event, t, sourceId, r, screen_w, screen_h, scree
                 d();
             }
             break;
+        }
         case "start_stop":
-            start_stop.click();
+            startStop.el.click();
             break;
+        case "state":
+            if (sourceId === "stop") {
+                startStop.el.click();
+            } else if (sourceId === "pause") {
+                if (recorder.state === "inactive") return;
+                if (recorder.state === "recording") {
+                    recorder.pause();
+                    pTime();
+                } else if (recorder.state === "paused") {
+                    recorder.resume();
+                    pTime();
+                }
+            }
     }
 });
 
-document.getElementById("min").onclick = () => {
-    ipcRenderer.send("record", "min");
-};
-
-document.getElementById("close").onclick = () => {
-    ipcRenderer.send("record", "close");
-};
-
-async function mic_stream(v) {
-    for (let i of audio_stream.getAudioTracks()) {
-        i.enabled = v;
-    }
-    if (v != mic_el.checked) mic_el.checked = v;
-}
-
-mic_el.onclick = () => {
-    try {
-        mic_stream(mic_el.checked);
-        if (store.get("录屏.音频.记住开启状态")) store.set("录屏.音频.默认开启", mic_el.checked);
-    } catch (e) {
-        console.error(e);
-    }
-};
-
-var /**@type {MediaStream} */ camera_stream;
-async function camera_stream_f(v) {
-    if (v) {
-        camera_stream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: true,
-        });
-        document.querySelector("video").srcObject = camera_stream;
-        document.querySelector("video").play();
-        if (store.get("录屏.摄像头.镜像")) document.querySelector("video").style.transform = "rotateY(180deg)";
-        ipcRenderer.send("record", "camera", 0);
-        setTimeout(() => {
-            resize();
-        }, 400);
-    } else {
-        camera_stream.getVideoTracks()[0].stop();
-        document.querySelector("video").srcObject = null;
-        ipcRenderer.send("record", "camera", 1);
-    }
-}
-
-if (store.get("录屏.摄像头.默认开启")) {
-    try {
-        camera_stream_f(true);
-        camera_el.checked = true;
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-camera_el.onclick = () => {
-    try {
-        camera_stream_f(camera_el.checked);
-        if (store.get("录屏.摄像头.记住开启状态")) store.set("录屏.摄像头.默认开启", camera_el.checked);
-    } catch (e) {
-        console.error(e);
-    }
-};
-
-document.body.onresize = resize;
-
-function resize() {
-    let p = { h: document.getElementById("video").offsetHeight, w: document.getElementById("video").offsetWidth },
-        c = { h: document.getElementById("v_p").offsetHeight, w: document.getElementById("v_p").offsetWidth };
-    let k0 = p.h / p.w;
-    let k1 = c.h / c.w;
-    if (k0 >= k1) {
-        console.log(p.w, c.w);
-        // @ts-ignore
-        document.getElementById("v_p").style.zoom = p.w / c.w;
-    } else {
-        // @ts-ignore
-        document.getElementById("v_p").style.zoom = p.h / c.h;
-    }
-}
-
-ipcRenderer.on("ff", (e, t, arg) => {
-    if (t == "p") {
-        document.getElementById("pro").style.width = arg * 100 + "%";
-        if (arg == 1)
+ipcRenderer.on("ff", (_e, t, arg) => {
+    if (t === "p") {
+        if (arg === 1)
             setTimeout(() => {
                 ipcRenderer.send("record", "close");
             }, 400);
     }
-    if (t == "l") {
-        const textarea = <HTMLTextAreaElement>document.getElementById("log");
-        textarea.value += "\n" + arg[1];
+    if (t === "l") {
+        const textarea = logText.el;
+        textarea.value += `\n${arg[1]}`;
         textarea.scrollTop = textarea.scrollHeight;
     }
+    if (t === "save_path") {
+        savePath = arg;
+        if (isTsOk)
+            clip()
+                .then(() => joinAndSave(arg))
+                .catch(() => {
+                    isClipRun = false;
+                });
+    }
 });
-
-var editting = false;
-
-function show_control() {
-    editting = true;
-    document.getElementById("v_play").querySelector("img").src = recume_svg;
-    if (mic_el.checked) mic_stream(false);
-    if (camera_el.checked) camera_stream_f(false);
-    document.getElementById("s").className = "s_show";
-    document.getElementById("record_b").style.display = "none";
-    document.getElementById("m").style.backgroundColor = "var(--bg)";
-    document.getElementById("time").innerText = "";
-    add_types();
-    document.querySelector("video").style.transform = "";
-    document.querySelector("video").src = tmp_path;
-    document.querySelector("video").style.left = -rect[0] * ratio + "px";
-    document.querySelector("video").style.top = -rect[1] * ratio + "px";
-    document.getElementById("v_p").style.width = document.getElementById("v_p").style.minWidth = rect[2] * ratio + "px";
-    document.getElementById("v_p").style.height = document.getElementById("v_p").style.minHeight =
-        rect[3] * ratio + "px";
-    clip_v();
-    save_el.disabled = false;
-    格式_el.value = store.get("录屏.转换.格式");
-    码率_el.value = store.get("录屏.转换.码率");
-    帧率_el.value = store.get("录屏.转换.帧率");
-    其他参数_el.value = store.get("录屏.转换.其他");
-    if (store.get("录屏.转换.自动转换")) {
-        save();
-    } else {
-        ipcRenderer.send("record", "camera", 2);
-    }
-    setTimeout(() => {
-        resize();
-        document.getElementById("m").style.transition = "none";
-    }, 400);
-}
-
-var video = document.querySelector("video");
-
-function clip_v() {
-    t_start_el.value = 0;
-    document.getElementById("b_t_end").click();
-
-    document.getElementById("t_t").innerText = t_format(t_end_el.value - t_start_el.value);
-
-    document.getElementById("t_nt").innerText = t_format(0);
-}
-
-t_start_el.oninput = () => {
-    video.currentTime = (t_end_el.min = jdt_el.min = t_start_el.value) / 1000;
-    document.getElementById("t_t").innerText = t_format(t_end_el.value - t_start_el.value);
-};
-t_end_el.oninput = () => {
-    video.currentTime = (t_start_el.max = jdt_el.max = t_end_el.value) / 1000;
-    document.getElementById("t_t").innerText = t_format(t_end_el.value - t_start_el.value);
-};
-
-document.getElementById("b_t_end").onclick = () => {
-    jdt_el.max = t_end_el.value = t_start_el.max = t_end_el.max = time_l[time_l.length - 1] - time_l[0];
-};
-
-/**
- *
- * @param {string} x 输入秒
- */
-function t_format(x) {
-    let t = x;
-    let s = Math.trunc(t / 1000);
-    let m = Math.trunc(s / 60);
-    let h = Math.trunc(m / 60);
-    return `${h == 0 ? "" : `${h}:`}${m - 60 * h}:${String(s - 60 * m).padStart(2, "0")}.${String(t % 1000).slice(
-        0,
-        1
-    )}`;
-}
-
-document.getElementById("v_play").onclick = () => {
-    if (video.paused) {
-        video_play();
-        document.getElementById("v_play").querySelector("img").src = pause_svg;
-    } else {
-        video.pause();
-        document.getElementById("v_play").querySelector("img").src = recume_svg;
-    }
-};
-
-video.onpause = () => {
-    document.getElementById("v_play").querySelector("img").src = recume_svg;
-};
-video.onplay = () => {
-    document.getElementById("v_play").querySelector("img").src = pause_svg;
-};
-
-function video_play() {
-    video.currentTime = t_start_el.value / 1000;
-    video.play();
-}
-
-video.ontimeupdate = () => {
-    if (!editting) return;
-    document.getElementById("t_nt").innerText = t_format(video.currentTime * 1000 - t_start_el.value);
-    if (video.currentTime * 1000 > t_end_el.value) {
-        video.pause();
-        document.getElementById("t_nt").innerText = document.getElementById("t_t").innerText;
-    }
-    jdt_el.value = video.currentTime * 1000;
-};
-
-jdt_el.oninput = () => {
-    video.currentTime = jdt_el.value / 1000;
-};
-
-video.onended = () => {
-    document.getElementById("t_nt").innerText = document.getElementById("t_t").innerText;
-    jdt_el.value = jdt_el.max;
-};
-
-function add_types() {
-    let types = [
-        "mp4",
-        "mkv",
-        "mov",
-        "avi",
-        "wmv",
-        "m4v",
-        "mpeg",
-        "vob",
-        "webm",
-        "ogv",
-        "3gp",
-        "flv",
-        "f4v",
-        "swf",
-        "gif",
-    ];
-    let t = "";
-    for (let i of types) {
-        t += `<option value="${i}">${i}</option>`;
-    }
-    格式_el.innerHTML = t;
-}
-
-function save() {
-    let t = "";
-    if (码率_el.value) t += `-b:v ${Number(码率_el.value) * 1000}k `;
-    if (帧率_el.value) t += `-r ${帧率_el.value} `;
-    if (其他参数_el.value) t += `${其他参数_el.value} `;
-    t += `-ss ${t_start_el.value / 1000} `;
-    if (t_end_el.value != (time_l[time_l.length - 1] - time_l[0]) / 1000) t += `-to ${t_end_el.value / 1000} `;
-    let 格式 = 格式_el.value;
-    console.log(t);
-    store.set("录屏.转换.格式", 格式_el.value);
-    store.set("录屏.转换.码率", Number(码率_el.value));
-    store.set("录屏.转换.帧率", Number(帧率_el.value));
-    store.set("录屏.转换.其他", 其他参数_el.value);
-    ipcRenderer.send("record", "ff", { 源文件: tmp_path, 参数: t.split(" "), 格式 });
-    // ipcRenderer.send("record", "close");
-}
-
-document.getElementById("save").onclick = save;

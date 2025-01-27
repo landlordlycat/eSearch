@@ -2,10 +2,11 @@
 
 (中文 | [English](README_en.md))
 
-![LOGO](https://esearch.vercel.app/readme/title_photo.svg)
-
+![LOGO](https://esearch-app.netlify.app/readme/title_photo.svg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fxushengfeng%2FeSearch.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fxushengfeng%2FeSearch?ref=badge_shield)
 [![license](https://img.shields.io/github/license/xushengfeng/eSearch)](LICENSE)
-![](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+![commit-activity](https://img.shields.io/github/commit-activity/m/xushengfeng/eSearch)
 [![release-date](https://img.shields.io/github/release-date/xushengfeng/eSearch)](https://github.com/xushengfeng/eSearch/releases/latest)
 [![release](https://img.shields.io/github/v/release/xushengfeng/eSearch)](https://github.com/xushengfeng/eSearch/releases/latest)
 [![](https://img.shields.io/github/downloads/xushengfeng/eSearch/total?color=brightgreen&label=总下载量)](https://github.com/xushengfeng/eSearch/releases/latest)
@@ -20,143 +21,115 @@ eSearch 是[Information-portal](https://github.com/xushengfeng/Information-porta
 
 经过数次版本迭代，eSearch 的功能愈加丰富
 
-即拥有 **截屏+OCR+搜索+翻译+贴图+以图搜图+录屏**
+即拥有 **截屏+OCR+搜索+翻译+贴图+屏幕翻译+以图搜图+滚动截屏+录屏**
 
-![截屏界面](https://esearch.vercel.app/readme/1.webp)
+![截屏界面](https://esearch-app.netlify.app/readme/1.webp)
 
 > 字体是[FiraCode](https://github.com/tonsky/FiraCode)，字体可在设置里设置
 
-![识别文字主页面](https://esearch.vercel.app/readme/2.webp)
+![识别文字主页面](https://esearch-app.netlify.app/readme/8.webp)
 
 ## 下载安装
 
-到网站[eSearch](https://esearch.vercel.app/#download)下载
+到网站[eSearch](https://esearch-app.netlify.app/#download)下载
 
-或在右侧 releases 打开标签，选择符合你系统的包并下载安装
+或在右侧 [releases](https://github.com/xushengfeng/eSearch/releases) 打开标签，选择符合你系统的包并下载安装
 
-国内可以用[GitHub Proxy](https://ghproxy.com)加速下载
+国内可以用[GitHub Proxy](https://mirror.ghproxy.com)加速下载
 
 ArchLinux 可在 AUR 查找安装 `e-search`或`e-search-git`
 
 winget `winget install esearch`
 
-## OCR 服务
-
-本地 OCR 由[PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)的模型提供支持。
-
-默认启用本地 OCR 服务，若想使用在线 OCR，目前提供了百度在线 OCR，需要依据[教程](https://cloud.baidu.com/doc/OCR/s/dk3iqnq51)获取*API KEY* 以及 _Secret KEY_，截止 2022 年 1 月，百度 OCR 还是可以[免费领取服务](https://cloud.baidu.com/doc/OCR/s/dk3iqnq51)。将获取到的*API KEY* 和*Secret KEY* 以及相应的你选择的文字识别服务[_URL_](https://cloud.baidu.com/doc/OCR/s/zk3h7xz52#%E8%AF%B7%E6%B1%82%E8%AF%B4%E6%98%8E) 填入软件设置，去掉离线 OCR 的勾选即可使用在线 OCR。
-
-## 源码运行&编译
-
-编译需要`python` 和 `C++`环境，Windows 下编译需要 `python` 和`visual studio`（安装 C++）
-
-```shell
-git clone https://github.com/xushengfeng/eSearch.git
-cd eSearch
-npm install
-# 运行
-npm run start
-# 调试
-npm run dev
-# 编译
-npm run dist
-# 将在build目录产生安装包和解压的目录
-```
-
 ## 启动
 
-在你的启动器打开 eSearch，他将出现在托盘。Gnome 用户需要安装[appindicator](https://extensions.gnome.org/extension/615/appindicator-support/)插件
+在你的启动器打开 eSearch，他将出现在托盘。
 
 默认快捷键为 <kbd>Alt</kbd>+<kbd>C</kbd>(你也可以在设置里设置快捷键)
 
-### cli
-
-**eSearch**支持 cli，可以通过命令行进行简单的截屏。
-
-```shell
-esearch (若找不到，请尝试e-search)
-	-a # 自动识别
-	-c # 截屏搜索
-	-s # 选中搜索
-	-b # 剪贴板搜索
-	-q # 快速截屏
-```
-
-不建议在终端进行自动或选中搜索，否则**eSearch**会执行<kbd>Ctrl</kbd>+<kbd>C</kbd>，从而导致终止终端程序
-
 ## 功能
 
-已经勾选的功能是开发过程最新功能，但可能还没发布在最新版本
+更多介绍见[文档](./docs/use/start.md)
 
--   [x] 截屏
-    -   [x] 框选裁切
-    -   [x] 框选大小位置可调整(支持方向键或 WASD)
-    -   [x] 框选大小栏可输入四则运算式调整
-    -   [x] 取色器
-    -   [x] 放大镜
-    -   [x] 画笔（自由画笔）
-    -   [x] 几何形状（边框填充支持调节）
-    -   [x] 高级画板设置（使用 Fabric.js 的 api）
-    -   [x] 图像滤镜（支持局部马赛克模糊和色彩调节）
-    -   [x] 自定义框选松开后的操作
-    -   [x] 快速截取全屏到剪贴板或自定义的目录
-    -   [x] 截屏历史记录
-    -   [x] 窗口和控件选择（使用 OpenCV 边缘识别）
-    -   [x] 长截屏
-    -   [x] 多屏幕
--   [x] 录屏
-    -   [x] 录制全屏
-    -   [x] 自定义大小
-    -   [x] 按键提示
-    -   [x] 光标位置提示
-    -   [x] 录制栏
-    -   [ ] 流写入
-    -   [x] 录音
-    -   [x] 录制摄像头
-    -   [x] 自定义比特率
--   [x] 保存（可选保存为 SVG 可编辑文件）
--   [x] 其他应用打开
--   [x] 复制到剪贴板
--   [x] 钉在屏幕上
-    -   [x] 滚轮缩放
-    -   [x] 恢复默认大小位置
-    -   [x] 透明度
-    -   [x] 鼠标穿透
--   [x] 二维码识别
--   [x] OCR 识别
-    -   [x] 离线 OCR（[eSearch-OCR](https://github.com/xushengfeng/eSearch-OCR)）
-    -   [x] 自定义离线 OCR 模型和字典
-    -   [x] 其他在线 OCR
-    -   [x] 在线公式识别
-    -   [x] 支持自己申请秘钥
-    -   [ ] 表格识别
--   [x] 以图搜图
--   [x] 托盘
--   [x] 划词句来搜索
--   [x] 识别展示
-    -   [x] 自动搜索翻译
-    -   [x] 搜索
-    -   [x] 翻译
-    -   [x] 自定义搜索翻译引擎
-    -   [x] 自定义搜索翻译引擎（POST 模式，可用 Api）
-    -   [x] 软件自带浏览器打开
-    -   [x] 跟随关闭、失焦关闭
-    -   [x] 系统浏览器打开
-    -   [x] 链接识别
-    -   [x] 历史记录
-    -   [x] 自动删除换行（用于自动排版）
-    -   [x] 查找替换（支持正则匹配）
-    -   [x] 其他编辑器编辑（支持自动重载）
-    -   [x] 行号
-    -   [x] 拼写检查
--   [x] Wayland 桌面
+### 截屏
 
-## 插件
+框选裁切、取色器、自由画笔、几何、马赛克、模糊
 
-[简单的小插件](https://esearch-app.netlify.app/plugin.html)
+框选除了通过方向键调节，还支持输入四则运算式调整
 
--   隐藏鼠标跟随栏（取色器和坐标）
--   隐藏工具栏按钮（可自行更改）
+支持自定义框选后立马执行操作，如框选后自动 OCR
+
+还支持滚动截屏，横向、竖向、任意方向都可以拼接
+
+### 截屏美化
+
+可为截屏设置背景（渐变、图片）、圆角、阴影
+
+改变图像分辨率导出
+
+抹除物体并修补图像
+
+### 录屏
+
+录制屏幕、自定义大小、摄像头
+
+可提示光标位置和键盘击键
+
+可设置虚拟背景
+
+### 超级录屏
+
+自动缩放聚焦到鼠标位置，录屏更生动
+
+加速、删除，操作每个帧
+
+### 屏幕贴图
+
+滚轮缩放、透明度、自动归位、鼠标穿透
+
+支持放大图像且不改变窗口大小，防止遮挡其他内容
+
+可通过 CSS 设置滤镜、变换（如镜像）
+
+### OCR（文字识别）
+
+开箱即用的离线 OCR（[eSearch-OCR](https://github.com/xushengfeng/eSearch-OCR)），框选文字后按下回车键即可
+
+离线 OCR 支持段落识别，也可以使用基于标点符号的分段算法
+
+同时也支持百度、有道的在线 OCR
+
+可后期编辑文字，在图片上选择文字，同步选区到编辑区，方便校对
+
+支持多语言（需要在设置额外下载）
+
+### 以图搜图
+
+谷歌、百度、Yandex 的以图搜图引擎
+
+可自定义多模态大模型接口，与 AI 交流图片
+
+### 翻译
+
+OCR 后可调用翻译，支持选词翻译
+
+支持免费的翻译引擎，如谷歌翻译等，也可以自己设置其他翻译引擎的 API，如 DeepL、百度等，可以使用 ChatGPT 等 AI 翻译，甚至可以自定义本地 AI 翻译
+
+可多个引擎同时翻译，择其善者
+
+可以保存翻译结果到本地文件或通过网络保存到 Anki 等记忆软件
+
+### 屏幕翻译
+
+生成一个贴图窗口，并把图片文字替换成翻译后的文本
+
+可设置定时翻译，适合视频、游戏等
+
+### 其他
+
+二维码识别
+
+## 展示
 
 https://user-images.githubusercontent.com/28475549/155870834-34ffa59f-9eac-4eea-9d82-135681d7dfa9.mp4
 
@@ -170,7 +143,7 @@ https://user-images.githubusercontent.com/28475549/155870867-fb0d31f0-2e06-431c-
 
 > Ding 在屏幕上，透明度调节、归位以及鼠标操作（视频约 1.8MB）
 
-![3](https://esearch.vercel.app/readme/3.webp)
+![3](https://esearch-app.netlify.app/readme/3.webp)
 
 > 绘图界面
 
@@ -178,7 +151,7 @@ https://user-images.githubusercontent.com/28475549/155870881-9b2fc1b3-77de-4a99-
 
 > 主页面搜索和其他应用编辑（视频约 1.6MB）
 
-![3](https://esearch.vercel.app/readme/4.webp)
+![3](https://esearch-app.netlify.app/readme/4.webp)
 
 > 主页面查找替换（支持正则）
 
@@ -186,14 +159,36 @@ https://user-images.githubusercontent.com/28475549/155870881-9b2fc1b3-77de-4a99-
 
 大多数按钮使用图标，简少了不必要的翻译
 
--   [x] 简体中文
--   [x] 繁体中文
--   [x] 世界语
--   [x] 西班牙语
--   [x] 阿拉伯语
--   [x] 英语
--   [x] 法语
--   [x] 俄语
+[+添加新语言](./lib/translate/readme.md)
+
+- [x] 简体中文
+- [x] 繁体中文
+- [x] 世界语（Esperanto）
+- [x] 西班牙语（Español）
+- [x] 阿拉伯语（عربي）
+- [x] 英语（English）
+- [x] 法语（Français）
+- [x] 俄语（Русский）
+
+## 源码运行&编译
+
+```shell
+git clone https://github.com/xushengfeng/eSearch.git
+cd eSearch
+npm install
+# 编译
+npm run dist
+# 将在build目录产生安装包和解压的目录
+```
+
+```shell
+# 运行
+npm run start
+# 调试
+npm run dev
+```
+
+[具体技术说明](docs/develop/readme.md)
 
 ## 测试
 
@@ -205,25 +200,67 @@ macOS Catalina 测试通过
 
 ## Q&A
 
+### 不再支持 Win7、Win8
+
+Electron 官方不再支持 Win7、Win8，所以 eSearch 也不再支持。
+
+但可以自己编译，见[文档](./docs/use/qa.md#兼容性)，部分功能可能无法使用。
+
+### 下载依赖库
+
+大部分 Windows 在安装后会提示下载依赖库，这是因为截屏库需要，点击下载，将自动打开微软官网下载，安装完成后可能需要重启。
+
+### Gnome 点击后无响应
+
+Gnome 用户需要安装[appindicator](https://extensions.gnome.org/extension/615/appindicator-support/)插件来使用托盘。
+
+### mac 提示文件已损坏
+
+mac 对互联网下载的 dmg 做了部分限制。
+
+可以在互联网上搜索“mac”、“文件损坏”等关键词。不同版本的系统适用的方法也不同。
+
 ### 为什么选择 electron
 
--   跨平台需要，本来我是想在 Linux 上也能体验 Windows 下优秀的截屏工具，Linux 独占也不好，所以选择跨平台。
--   qt 依赖 c++，学习成本太高。flutter 桌面版还不太成熟。我更擅长 js 开发。
--   截屏依赖本地系统，这是目前浏览器做不到的。
--   最后只有 js 类跨平台方案，我选择了较为成熟，使用最多的 electron。
+- 跨平台需要，本来我是想在 Linux 上也能体验 Windows 下优秀的截屏工具，Linux 独占也不好，所以选择跨平台。
+- qt 依赖 c++，学习成本太高。flutter 桌面版还不太成熟。我更擅长 js 开发。
+- 截屏依赖本地系统，这是目前浏览器做不到的。
+- 最后只有 js 类跨平台方案，我选择了较为成熟，使用最多的 electron。
 
-### [tauri](https://github.com/tauri-apps/tauri) 也支持跨平台，也使用 js 开发，会转为 tauri 开发吗
+在其他平台没有类似 Arch Linux 单独打包作为库的情况下，软件占用的存储空间是比较多的，但几十行 js 脚本的增加不多，带来的功能却显著地感知到，所以我会尽力发挥其潜力，做到更精美的 UI、更丰富的功能。
 
--   有这个打算，还很心动。不过主进程 2000 行代码迁移到 rust 还是有些费劲的，所以现在不会很快迁移。
+### 为什么安装包这么大
+
+除了 Electron 的占用，还有 onnx 运行库（用于运行 AI 模型）、离线文字识别模型、录屏人像识别模型、高级编辑的物体移除模型、FFmpeg（用于录屏格式转换，Linux 有库所以不附带）等。
+
+### 更新版本后出现了以前没有的错误
+
+一般是因为不同版本的配置不兼容，可以尝试在 设置-高级-高级设置 里 恢复默认设置。
+
+若未能解决问题，请提交 issue
+
+## 贡献
+
+请查看[贡献指南](CONTRIBUTING.md)
 
 ## 开发原因
 
-我在用 Windows 时一直用这个好用的截屏软件：[Snipaste - 截图 + 贴图](https://zh.snipaste.com/)，但我现在切换到 Linux，Snipaste 不支持，所以我选择了[Flameshot](https://flameshot.org/)，很可惜它没有直观的取色器。
+我在用 Windows 时一直用这个好用的截屏软件：[Snipaste - 截图 + 贴图](https://zh.snipaste.com/)，但我切换到 Linux，Snipaste 不支持（2019 年，现在已支持），所以我选择了[Flameshot](https://flameshot.org/)，很可惜它没有直观的取色器。
 
 促使我开发 eSearch 的另一个契机是我很享受在手机上使用[锤子大爆炸](https://www.smartisan.com/pr/videos/bigbang-introduction)或[小米传送门](https://www.miui.com/zt/miui9/index.html)这样的即时信息搜索工具，但我没有找到电脑上类似的代替品。
 
 所以我干脆自己开发一个“截屏+OCR+搜索+贴图”的软件。最开始用 python+pyqt 开发出[Information-portal](https://github.com/xushengfeng/Information-portal.git)，但因为我不熟悉 pyqt，所以我转战:electron:，开发出本软件。😄
 
+## 赞赏与支持
+
+精神支持：点亮右上角 star 星标 🌟
+
+物质支持：[个人主页赞赏](https://github.com/xushengfeng)
+
+行动：反馈 bug、提供新功能点子、[参与开发](CONTRIBUTING.md)
+
 ## License
 
 [GPL-3.0](LICENSE) © xushengfeng
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fxushengfeng%2FeSearch.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fxushengfeng%2FeSearch?ref=badge_large)

@@ -1,85 +1,74 @@
 :root {
-    --alpha: 0.6;
-    --bar-bg: rgba(255, 255, 255, var(--alpha));
-    --bar-hover-color: #0002;
+    --alpha: 60%;
+
+    --bar-bg0: #fff;
     --bg: #fff;
-    --bg2: #f5f5f5;
-    --hover-color: #dfdfdf;
-    --m-color1: hsl(224deg 100% 63%);
-    --m-color2: hsl(0, 0%, 90%);
+    --emphasis-color: #dfdfdf;
+    --font-color: #000;
+    --icon-color: none;
+
+    --bar-bg: color-mix(in srgb, var(--bar-bg0) var(--alpha), transparent);
+    --hover-color: var(--emphasis-color);
+    --bar-hover-color: color-mix(
+        in srgb,
+        var(--emphasis-color) 25%,
+        transparent
+    );
+    --bar-focus-color: var(--emphasis-color);
+
+    --d-bar-bg0: #000;
+    --d-bg: #000;
+    --d-emphasis-color: #333;
+    --d-font-color: #fff;
+    --d-icon-color: invert(1);
+
+    --m-color-b: var(--emphasis-color);
+
+    --m-color-b: color-mix(in oklab, var(--emphasis-color) 85%, var(--bg));
+    --m-color-bb: color-mix(in oklab, var(--emphasis-color) 50%, var(--bg));
+    --m-color-bbb: color-mix(in oklab, var(--emphasis-color) 25%, var(--bg));
+
+    --m-color-f: color-mix(
+        in oklab,
+        var(--emphasis-color) 85%,
+        var(--font-color)
+    );
+    --m-color-ff: color-mix(
+        in oklab,
+        var(--emphasis-color) 50%,
+        var(--font-color)
+    );
+    --m-color-fff: color-mix(
+        in oklab,
+        var(--emphasis-color) 25%,
+        var(--font-color)
+    );
+
     --transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    --button-active: scale(0.85);
     --border-radius: 8px;
     --blur: blur(10px);
-    --shadow: #0003 0 0 4px;
-    --height: 40px;
-    --color: #000;
-    --color2: #555;
-    --border: 1px #000 solid;
-    --font-size: 1rem;
+    --shadow: color-mix(in srgb, var(--emphasis-color) 20%, transparent) 0 0 4px,
+        color-mix(in srgb, var(--font-color) 30%, transparent) 0 0 2px;
+    --font-color-l: color-mix(in srgb, var(--font-color) 50%, var(--bg));
+    --font-color-ll: color-mix(in srgb, var(--font-color) 30%, var(--bg));
     --color-size: 150px;
     --color-i-size: 10px;
     --monospace: ;
     --main-font: sans-serif;
-    --icon-color: none;
     --bar-size: 60px;
     --bar-icon: 0.7;
-    --b-button: 32px;
+    --base-size1: 32px;
+    --b-button: var(--base-size1);
     --o-padding: 8px;
+    --base-size2: 24px;
+    --space2: 4px;
 }
 
-html,
 body {
-    margin: 0;
     font-family: var(--main-font);
-    color: var(--color);
-}
-
-.icon {
-    position: absolute;
-    pointer-events: none;
-    left: 0;
-    top: 0;
-    filter: var(--icon-color);
-    user-select: none;
-}
-
-#tab_bar {
-    margin: 0 auto var(--o-padding) var(--o-padding);
-    display: flex;
-    align-items: center;
-    border-radius: var(--border-radius);
-    overflow: hidden;
+    color: var(--font-color);
     background-color: var(--bg);
-    transition: var(--transition);
-}
-#tab_bar:hover {
-    box-shadow: var(--shadow);
-}
-#tab_bar a {
-    display: block;
-    text-decoration: none;
-}
-
-#tab_bar a div {
-    width: var(--b-button);
-    height: var(--b-button);
-    transition: var(--transition);
-    position: relative;
-}
-#tab_bar a div:hover {
-    background-color: var(--hover-color);
-}
-#tab_bar a div > .icon {
-    width: var(--b-button);
-}
-
-kbd {
-    display: inline-block;
-    padding: 2px 4px;
-    border-radius: var(--border-radius);
-    background: linear-gradient(315deg, #e6e6e6, #ffffff);
-    font-family: var(--monospace);
-    border: 1px solid #ddd;
 }
 
 ::-webkit-scrollbar {
@@ -94,58 +83,188 @@ kbd {
     background: #ccc;
 }
 ::-webkit-scrollbar-track {
-    background: #0000;
+    background: transparent;
 }
 ::-webkit-scrollbar-button {
-    height: 8px;
-    width: 8px;
-    background-color: #0000;
+    height: 0;
+    width: 0;
+    background-color: transparent;
 }
 ::-webkit-scrollbar-corner {
-    background-color: #0000;
+    background-color: transparent;
 }
 
-/* 用于截屏界面固定 */
-.hover_b {
-    background-color: var(--hover-color);
+body button,
+body input,
+body select,
+*:has(> .icon),
+.b-like,
+.group {
+    height: var(--b-button);
+    border-radius: var(--border-radius);
+    color: var(--font-color);
+    font-size: inherit;
+    transition: var(--transition);
+    user-select: none;
+    outline: 1px solid transparent;
+    background: transparent;
+    outline-offset: -1px;
+}
+.x-like {
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    outline: 1px solid var(--m-color-b);
+    outline-offset: -1px;
 }
 
-button {
-    outline: none;
-    color: var(--color);
-    font-family: var(--main-font);
+:not(.group)
+    > :where(button, input, select, textarea, *:has(> .icon), .b-like) {
+    background-color: var(--bg);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    outline: 1px solid var(--m-color-b);
+    &:focus-visible {
+        outline: 1px solid var(--m-color-f);
+    }
+}
+.group {
+    display: flex;
+    outline: 1px solid var(--m-color-b);
+    outline-offset: -1px;
+    border: none;
+    width: fit-content;
+    & > *:focus-visible {
+        outline: 1px solid var(--m-color-b);
+    }
+}
+*:has(> .icon) {
+    cursor: pointer;
+}
+body button,
+body input,
+body select,
+.b-like {
+    padding-inline: var(--o-padding);
+    width: fit-content;
 }
 
-input {
-    outline: none;
-    background-color: #0000;
-    color: var(--color);
+body button,
+body select {
+    &:hover {
+        background-color: var(--hover-color);
+    }
 }
 
-select {
-    outline: none;
+body select {
+    field-sizing: content;
 }
 
-textarea {
-    outline: none;
-    background-color: #0000;
-    color: var(--color);
+button:active {
+    transform: var(--button-active);
+}
+
+.icon {
+    pointer-events: none;
+    max-width: 100%;
+    max-height: 100%;
+    filter: var(--icon-color);
+    user-select: none;
+    display: block;
+}
+
+*:has(> .icon) {
+    display: flex;
+    padding-inline: 0;
+    width: var(--b-button);
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+option {
+    font-size: 1rem;
+    background-color: var(--bg);
+}
+
+body textarea {
+    outline-offset: -1px;
+    padding: var(--o-padding);
+    width: 300px;
+}
+
+body dialog {
+    padding: var(--o-padding);
+    border-radius: calc(var(--border-radius) + var(--o-padding));
+}
+
+kbd {
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: var(--border-radius);
+    background: linear-gradient(315deg, #e6e6e6, #ffffff);
+    font-family: var(--monospace);
+    border: 1px solid #ddd;
+}
+
+input[type="number"] {
+    font-family: var(--monospace);
+    field-sizing: content;
+}
+
+label:has(> input[type="checkbox"]) {
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    appearance: none;
+    top: 2px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    border-radius: 4px;
+    transition: var(--transition);
+    cursor: pointer;
+    padding: 0;
+}
+input[type="checkbox"]:checked {
+    background-color: var(--m-color-f) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(255, 255, 255)' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 8 9 19 4 14'%3E%3C/polyline%3E%3C/svg%3E");
+    background-position: center;
+    background-size: 0.75em auto;
+    background-repeat: no-repeat;
+}
+
+.bar {
+    background-color: var(--bar-bg);
+    backdrop-filter: var(--blur);
+    & :is(button, *:has(> .icon), input) {
+        border: none;
+        outline: none;
+        background-color: transparent;
+    }
+    & :is(button, *:has(> .icon), input) {
+        &:hover {
+            background: var(--bar-hover-color);
+        }
+    }
+}
+
+.small-size {
+    --b-button: var(--base-size2);
+    --o-padding: var(--space2);
+    & > * {
+        --border-radius: 4px;
+    }
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --bar-bg: rgba(0, 0, 0, var(--alpha));
-        --bar-hover-color: #fff2;
-        --bg: #000;
-        --bg2: #1f1f1f;
-        --hover-color: #333;
-        --m-color1: hsl(224deg 100% 38%);
-        --m-color2: hsl(0, 0%, 14%);
-        --shadow: #fff9 0 0 2px;
-        --color: #fff;
-        --color2: #aaa;
-        --border: 1px #fff solid;
-        --icon-color: invert(1);
+        --bar-bg0: var(--d-bar-bg0) !important;
+        --bg: var(--d-bg) !important;
+        --emphasis-color: var(--d-emphasis-color) !important;
+        --icon-color: var(--d-icon-color) !important;
+        --font-color: var(--d-font-color) !important;
     }
     ::-webkit-scrollbar-thumb {
         border-radius: 10px;
