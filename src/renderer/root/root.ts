@@ -1,24 +1,43 @@
-const Store = require("electron-store");
-import { t, lan } from "../../../lib/translate/translate";
-
-function init() {
-    var store = new Store();
-    var 模糊 = store.get("全局.模糊");
-    if (模糊 != 0) {
-        document.documentElement.style.setProperty("--blur", `blur(${模糊}px)`);
+function initStyle(
+    store: typeof import("../../../lib/store/renderStore")["default"],
+) {
+    function setCSSVar(name: string, value: string) {
+        if (value) document.documentElement.style.setProperty(name, value);
+    }
+    const 模糊 = store.get("全局.模糊");
+    if (模糊 !== 0) {
+        setCSSVar("--blur", `blur(${模糊}px)`);
     } else {
-        document.documentElement.style.setProperty("--blur", `none`);
+        setCSSVar("--blur", "none");
     }
 
-    document.documentElement.style.setProperty("--alpha", store.get("全局.不透明度"));
+    setCSSVar("--alpha", `${store.get("全局.不透明度") * 100}%`);
 
-    var 字体 = store.get("字体");
-    document.documentElement.style.setProperty("--main-font", 字体.主要字体);
-    document.documentElement.style.setProperty("--monospace", 字体.等宽字体);
+    const theme = store.get("全局.主题");
+    setCSSVar("--bar-bg0", theme.light.barbg);
+    setCSSVar("--bg", theme.light.bg);
+    setCSSVar("--emphasis-color", theme.light.emphasis);
+    setCSSVar("--d-bar-bg0", theme.dark.barbg);
+    setCSSVar("--d-bg", theme.dark.bg);
+    setCSSVar("--d-emphasis-color", theme.dark.emphasis);
+    setCSSVar("--font-color", theme.light.fontColor);
+    setCSSVar("--d-font-color", theme.dark.fontColor);
+    setCSSVar("--icon-color", theme.light.iconColor);
+    setCSSVar("--d-icon-color", theme.dark.iconColor);
 
-    document.documentElement.style.setProperty("--icon-color", store.get("全局.图标颜色")[1]);
-    lan(store.get("语言.语言"));
-    document.title = t(document.title);
+    const 字体 = store.get("字体");
+    setCSSVar("--main-font", 字体.主要字体);
+    setCSSVar("--monospace", 字体.等宽字体);
 }
 
-export default init;
+// @auto-path:../assets/icons
+function getImgUrl(name: string) {
+    return new URL(`../assets/icons/${name}`, import.meta.url).href;
+}
+
+function setTitle(t: string) {
+    document.title = `eSearch ${t}`;
+    // todo 国际化
+}
+
+export { initStyle, getImgUrl, setTitle };

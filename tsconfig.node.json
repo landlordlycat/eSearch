@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "sourceMap": false,
-    "strict": false,
+    "strict": true,
     "jsx": "preserve",
     "esModuleInterop": true,
     "moduleResolution": "node",
@@ -23,6 +23,8 @@
   "include": [
     "electron.vite.config.*",
     "src/main/*",
-    "src/preload/*"
+    "src/preload/*",
+    "lib/**/*.ts",
+    "src/renderer/screenShot/*"
   ],
 }

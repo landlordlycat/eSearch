@@ -1,8 +1,8 @@
 :root {
-    --hover-color: var(--bar-hover-color) !important;
+    --hotkey-show: none;
 }
-::-webkit-scrollbar {
-    display: none;
+body {
+    --hover-color: var(--bar-hover-color) !important;
 }
 html {
     cursor: none;
@@ -11,6 +11,7 @@ body {
     cursor: default;
     user-select: none;
     overflow: hidden;
+    background-color: transparent !important;
 }
 html,
 body {
@@ -19,126 +20,14 @@ body {
     height: 100%;
 }
 
-/* 桌面切换 */
-#windows_bar {
-    background-color: var(--bar-bg);
-    width: 250px;
-    position: fixed;
-    z-index: 100;
-    backdrop-filter: var(--blur);
-    transition: var(--transition);
-    overflow: scroll;
-    height: 100%;
-    padding: 16px;
-    box-sizing: border-box;
-    transform: translateX(-100%);
-}
-#windows_bar > div {
-    margin-bottom: 16px;
-}
-#windows_bar_close {
-    border: none;
-    transition: var(--transition);
-    border-radius: var(--border-radius);
-    width: 36px;
-    height: 36px;
-    background-color: #0000;
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    left: 200px;
-    z-index: 2;
-}
-#windows_bar_close > .icon {
-    width: 24px;
-    left: 6px;
-    top: 6px;
-}
-#windows_bar_close:hover {
-    background-color: var(--hover-color);
-}
-
-.window {
-    transition: var(--transition);
-    padding: 8px;
-}
-.window:hover {
-    background-color: var(--hover-color);
-    transition: var(--transition);
-}
-.window_icon {
-    height: 2rem;
-    vertical-align: middle;
-}
-.window_title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin: 0 0 0 8px;
-}
-#window_photo {
-    overflow: hidden;
-    border-radius: 8px;
-}
-.window_thumbnail {
-    width: 100%;
-    display: block;
-}
-#windows_bar > #screens {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-}
-#windows_bar > #screens > div > canvas {
-    width: 100%;
-}
-#img_history > div > img {
-    width: 100%;
-    display: block;
-    border-radius: 6px;
-}
-#img_history > div {
-    position: relative;
-    margin-bottom: 8px;
-    padding: 2px;
-    box-sizing: border-box;
-    background-color: var(--bar-bg);
-    backdrop-filter: var(--blur);
-    border-radius: var(--border-radius);
-}
-#img_history > div > button {
-    position: absolute;
-    right: 0;
-    top: 0;
-    border: none;
-    outline: none;
-    width: 16px;
-    height: 16px;
-    border-radius: var(--border-radius);
-    background: none;
-    transition: var(--transition);
-    background-color: var(--bar-bg);
-}
-#img_history > div > button > .icon {
-    width: 16px;
-}
-#img_history > div > button:hover {
-    background-color: #f00;
-}
-#img_history > div > button:hover > .icon {
-    filter: invert(1);
-}
-
 /* 居中栏 */
 #center_bar {
     position: fixed;
     left: 50%;
     top: 35%;
-    transform: translateX(-50%);
+    transform: translate(round(-50%, 1px));
     z-index: 111;
     pointer-events: none;
-    background-color: var(--bar-bg);
-    backdrop-filter: var(--blur);
     opacity: 0;
     transition: var(--transition);
     padding: 2px;
@@ -159,63 +48,59 @@ body {
     border-radius: 6px;
     transition: var(--transition);
 }
-#save_type > #suffix > div:hover,
+#save_type > #suffix > div:hover {
+    background-color: var(--hover-color);
+}
 .suffix_h {
-    background-color: var(--hover-color);
+    background-color: var(--bar-focus-color);
 }
-/* 命令 */
-#draw_edit {
-    display: grid;
-    grid-template-columns: auto 36px;
-    grid-template-rows: 36px auto;
-    grid-column-gap: 0px;
-    grid-row-gap: 0px;
-}
-#draw_edit > input {
-    border: none;
-    height: 36px;
-    padding: 0;
-    margin: 0 4px;
-    background-color: #0000;
-    width: 300px;
-    font-size: 1rem;
-}
-#draw_edit_run,
-#draw_edit_clear {
-    border: none;
+/* 快捷键 */
+#hotkeys_tip {
+    display: var(--hotkey-show);
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(round(-50%, 1px), round(-50%, 1px));
+    max-height: 400px;
+    overflow: scroll;
+    z-index: 111;
     transition: var(--transition);
-    border-radius: 6px;
-    width: 36px;
-    height: 36px;
-    font-size: 36px;
-    padding: 0;
-    background-color: #0000;
-    flex-shrink: 0;
-    position: relative;
+    padding: 8px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
 }
-#draw_edit_run > .icon,
-#draw_edit_clear > .icon {
-    width: 36px;
-    left: 0;
-    top: 0;
+#hotkeys_tip > p {
+    font-size: large;
+    font-weight: bold;
 }
-#draw_edit_run:hover,
-#draw_edit_clear:hover {
-    background-color: var(--hover-color);
+#hotkeys_tip > div {
+    display: flex;
+    gap: 4px;
+    padding: 0 4px;
+    border-radius: 4px;
+    transition: var(--transition);
+    &:hover {
+        background-color: var(--hover-color);
+    }
 }
-#draw_edit_output {
-    grid-area: 2 / 1 / 3 / 4;
+#hotkeys_tip > div > :first-child {
+    flex-grow: 1;
+}
+
+body input {
+    padding-inline: 0 !important;
+    background-color: transparent !important;
 }
 
 /* 工具 */
 #tool_bar {
+    display: flex;
+    flex-direction: column;
     width: var(--bar-size);
-    background: var(--bar-bg);
     position: fixed;
     z-index: 99;
     left: 10px;
     top: 100px;
-    backdrop-filter: var(--blur);
     border-radius: calc(var(--bar-size) / 6);
     overflow: hidden;
     transition: opacity var(--transition);
@@ -228,90 +113,147 @@ body {
     transition: var(--transition);
     cursor: pointer;
     position: relative;
+    &:active {
+        transform: var(--button-active);
+    }
 }
 #tool_bar > div > .icon {
     width: calc(var(--bar-size) * var(--bar-icon));
-    left: calc(var(--bar-size) * (1 - var(--bar-icon)) / 2);
-    top: calc(var(--bar-size) * (1 - var(--bar-icon)) / 2);
 }
 #tool_bar > div:hover {
     background-color: var(--hover-color);
     transition: var(--transition);
 }
+
+#tool_screens {
+    cursor: default !important;
+}
+#tool_screens > div {
+    position: relative;
+    width: calc(var(--bar-size) * var(--bar-icon));
+    height: calc(var(--bar-size) * var(--bar-icon));
+    left: calc(var(--bar-size) * (1 - var(--bar-icon)) / 2);
+    top: calc(var(--bar-size) * (1 - var(--bar-icon)) / 2);
+}
+#tool_screens > div > div {
+    position: absolute;
+    border: 2px solid var(--font-color);
+    box-sizing: border-box;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.now_screen {
+    background-color: var(--bar-hover-color);
+}
+
 #tool_copy {
     cursor: copy !important;
 }
 
 .side_select {
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border: none;
     appearance: none;
-    color: #0000;
-    right: 2px;
-    top: 2px;
-    border-radius: 5px;
-    background-color: var(--bar-bg);
+    color: transparent;
+    right: 0px;
+    top: 0px;
+    border-radius: 6px;
+    overflow: hidden;
 }
+.side_select::part(button) {
+    border: none;
+    appearance: none;
+    color: transparent;
+    background-color: var(--bar-focus-color);
+    border-radius: 50%;
+    overflow: hidden;
+}
+.side_select::part(listbox) {
+    padding: 0px;
+    background: var(--bar-bg);
+    backdrop-filter: var(--blur);
+    box-shadow: var(--shadow);
+    border: none;
+}
+
 .side_select > option {
-    color: var(--color);
+    color: var(--font-color);
+    transition: var(--transition);
+    font-size: 1rem;
+    &:hover {
+        background-color: var(--hover-color);
+    }
+}
+
+#tool_bar > div::before,
+#draw_main > div::before,
+.draw_items > div::before {
+    content: attr(data-key);
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    background-color: var(--bar-bg);
+    border-radius: 4px;
+    backdrop-filter: var(--blur);
+    z-index: 1;
+    display: var(--hotkey-show);
 }
 
 /* 画 */
+.select {
+    background-color: var(--bar-focus-color);
+}
 #draw_bar {
     left: 80px;
     top: 100px;
     width: var(--bar-size);
-    height: calc(var(--bar-size) * 6);
-    background: var(--bar-bg);
+    height: calc(var(--bar-size) * 7);
     position: fixed;
-    z-index: 98;
-    backdrop-filter: var(--blur);
-    border-radius: calc(var(--bar-size) / 6);
-    overflow-y: scroll;
-    overflow-x: hidden;
+    z-index: 100;
     transition: width var(--transition), opacity var(--transition);
-    box-shadow: var(--shadow);
-    display: flex;
 }
 #draw_bar > div {
     width: var(--bar-size);
+    border-radius: calc(var(--bar-size) / 6);
+    box-shadow: var(--shadow);
 }
 #draw_main > div,
-.draw_items > div,
-.draw_items > lock-b {
+.draw_items > div {
     width: var(--bar-size);
     height: var(--bar-size);
     border-radius: calc(var(--bar-size) / 6);
     transition: var(--transition);
-    position: relative;
-}
-#draw_main > div::before,
-.draw_items > div::before,
-.draw_items > lock-b::before {
-    color: var(--icon-color);
-    vertical-align: middle;
+    &:not(:has(.range-b)):active {
+        transform: var(--button-active);
+    }
 }
 #draw_main > div > .icon,
-.draw_items > div > .icon,
-.draw_items > lock-b > .icon {
+.draw_items > div > .icon {
     width: calc(var(--bar-size) * var(--bar-icon));
-    left: calc(var(--bar-size) * (1 - var(--bar-icon)) / 2);
-    top: calc(var(--bar-size) * (1 - var(--bar-icon)) / 2);
 }
-#draw_main > div:hover,
-.draw_items > div:hover {
+#draw_main > div:not(:has(.range-b)):hover,
+.draw_items > div:not(:has(.range-b)):hover {
     background-color: var(--hover-color);
     transition: var(--transition);
 }
+#draw_side {
+    position: absolute;
+    top: 0;
+    transition: var(--transition);
+    overflow: hidden;
+}
+.draw_side_hide {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
 .draw_items {
     transition: var(--transition);
-    overflow: scroll;
+    display: flex;
+    flex-wrap: wrap;
 }
-#draw_side {
-    overflow: scroll;
-    scroll-behavior: smooth;
+.draw_items > div {
     flex-shrink: 0;
 }
 
@@ -324,7 +266,7 @@ body {
 }
 
 .editor_bg {
-    background-color: var(--bg);
+    background-color: var(--bg) !important;
 }
 .editor_bg > #editor > * {
     box-shadow: var(--shadow);
@@ -352,8 +294,6 @@ body {
     padding: 2px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
-    backdrop-filter: var(--blur);
-    background: var(--bar-bg);
     overflow: hidden;
     pointer-events: none;
     left: 100%;
@@ -368,19 +308,28 @@ body {
     height: var(--color-size);
     overflow: hidden;
     transition: var(--transition);
-    display: grid;
-    grid-template-columns: repeat(var(--color-i-i), var(--color-i-size));
-    grid-template-rows: repeat(var(--color-i-i), var(--color-i-size));
     border-radius: 6px;
-}
-#point_color_t_c {
-    box-shadow: #000 0 0 0 1px, #fff 0 0 0 2px;
     position: relative;
-    z-index: 2;
 }
-#point_color_t_b {
-    box-shadow: #0005 0 0 0 0.25px inset, #fff5 0 0 0 0.5px inset;
-    opacity: 0.5;
+#point_color > canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    image-rendering: pixelated;
+    width: var(--color-size);
+    height: var(--color-size);
+}
+#point_color > div {
+    position: absolute;
+}
+#point_color > div:nth-of-type(1) {
+    width: var(--color-i-size);
+    height: var(--color-i-size);
+    box-shadow: #000 0 0 0 1px, #fff 0 0 0 2px;
+}
+#point_color > div:nth-of-type(2),
+#point_color > div:nth-of-type(3) {
+    background: repeating-linear-gradient(45deg, #fff, #fff 2px, #000 4px);
 }
 #clip_xy {
     font-family: var(--monospace);
@@ -420,7 +369,7 @@ body {
 }
 .clip_copy {
     width: 200px !important;
-    height: 192px !important;
+    height: calc(32px * 11) !important;
 }
 .clip_copy_h {
     width: var(--color-size) !important;
@@ -432,95 +381,21 @@ body {
 #clip_wh {
     position: absolute;
     z-index: 11;
-    backdrop-filter: var(--blur);
-    background: var(--bar-bg);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
     display: flex;
 }
-#clip_wh > div:focus {
-    outline: none;
-}
 #clip_wh > div {
-    cursor: text;
     margin: 8px;
     font-family: var(--monospace);
 }
-#x0y0,
-#x1y1 {
-    display: none;
-}
-
-#waiting {
-    position: fixed;
-    display: none;
-    z-index: 11;
-    cursor: progress;
-    transform-origin: top left;
-}
-
-#loading {
-    position: fixed;
-    z-index: 100;
-    padding: 4px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    backdrop-filter: var(--blur);
-    background: var(--bar-bg);
-    transition: var(--transition);
-}
-#loading::after {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    border: 0.125em solid;
-    border-radius: 1em;
-    border-right-color: transparent;
-    content: "";
-    animation: spinner 0.75s linear infinite;
-    box-sizing: border-box;
-    margin-left: 0.25em;
-}
-@keyframes spinner {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.loading_hide {
-    pointer-events: none;
-    opacity: 0;
-}
-
-#ocr_error {
-    position: fixed;
-    z-index: 100;
-    padding: 8px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    backdrop-filter: var(--blur);
-    background: var(--bar-bg);
-    transition: var(--transition);
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-#ocr_error > div:last-child {
-    width: 100%;
-    border-radius: var(--border-radius);
-    background-color: var(--bar-bg);
-    transition: var(--transition);
-    text-align: center;
-}
-#ocr_error > div:last-child:hover {
-    background-color: var(--hover-color);
-    color: var(--bg);
-}
-.ocr_err_hide {
-    pointer-events: none;
-    opacity: 0;
+#clip_wh > div > input {
+    outline: none;
+    border: none;
+    cursor: text;
+    font-family: var(--monospace);
+    font-size: 1rem;
+    height: auto;
 }
 
 /* long */
@@ -541,50 +416,123 @@ body {
 }
 
 #long_finish:hover {
-    background-color: #0000;
+    background-color: transparent;
 }
 
-/* 录屏 */
-
-#recorder_rect {
-    position: fixed;
-    outline: 1px dashed #000;
+/* 编辑栏 */
+.range-b {
+    font-size: calc(var(--bar-size) / 3.75);
+    border-radius: inherit;
 }
-
-#mouse_c {
-    display: none;
-    position: fixed;
-    width: 24px;
-    height: 24px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background-color: #ff08;
+#shadow_blur {
+    overflow: hidden;
 }
-
-#recorder_bar {
-    position: absolute;
-    right: 4px;
-    bottom: 4px;
+#shadow_blur > .range-b {
+    height: var(--bar-size);
 }
-
-#recorder_mouse {
+#draw_color {
     display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#draw_color > div {
+    width: calc(var(--bar-size) * var(--bar-icon));
+    height: calc(var(--bar-size) * var(--bar-icon));
+    border-radius: calc(var(--bar-size) / 10);
+    border-width: calc(var(--bar-size) / 15);
+    border-style: solid;
+    box-sizing: border-box;
+    border-color: #333;
+    background-color: #fff;
+}
+#draw_color_switch {
+    position: relative;
+}
+#draw_fill_storke_mark {
+    position: absolute;
+    height: 50%;
+    width: 100%;
+    background-color: var(--bar-focus-color);
+    transition: var(--transition);
+    border-radius: inherit;
+}
+#draw_color_p > div {
+    overflow: hidden;
+    border-radius: inherit;
+    height: 100%;
+    transition: var(--transition);
+}
+#draw_color_p > div > * {
+    width: 100%;
+}
+#draw_color_p > div > :first-child {
+    outline: none;
+    font-family: var(--monospace);
+    font-size: calc(var(--bar-size) / 5);
+    height: 50%;
+    line-height: calc(var(--bar-size) / 5);
+    text-align: start;
+    border-radius: inherit;
+    display: block;
+}
+#draw_color_p > div > :last-child {
+    height: calc(var(--bar-size) / 2);
+}
+#draw_stroke_width {
+    overflow: hidden;
+}
+#draw_stroke_width > .range-b {
+    height: var(--bar-size);
+}
+#draw_color_color {
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    &:active {
+        transform: none !important;
+    }
+}
+.color_i {
+    transition: var(--transition);
+    &:active {
+        transform: scale(1) !important;
+    }
+}
+.color_i:hover {
+    position: relative;
+    z-index: 2;
+    transform: scale(1.5);
 }
 
-#recorder_mouse > div:nth-child(1) {
-    width: 8px;
-    height: 16px;
-    border-radius: 4px 0 0 4px;
-    margin-right: -2px;
+#draw_filters_i > div {
+    overflow: hidden;
 }
-#recorder_mouse > div:nth-child(2) {
-    width: 4px;
-    height: 8px;
-    border-radius: 2px;
-    margin-right: -2px;
+
+#draw_filters_i > div > .range-b {
+    height: var(--bar-size);
 }
-#recorder_mouse > div:nth-child(3) {
-    width: 8px;
-    height: 16px;
-    border-radius: 0 4px 4px 0;
+#draw_filters_i .filter_select::after {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    content: "";
+    background-color: var(--bar-bg);
+}
+#draw_filters_grayscale > div {
+    height: calc(var(--bar-size) / 3) !important;
+}
+#draw_filters_grayscale > div:hover {
+    background-color: var(--hover-color);
+}
+
+#draw_filters_bs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+#draw_filters_bs > div:hover {
+    background-color: var(--hover-color);
 }
